@@ -109,7 +109,7 @@ Function Get-FilesOfInterest
         
             if (-not ($PSBoundParameters.ContainsKey('Pattern')))
             {
-                $pattern = 'backup|OneDrive|\bold\b|\btest\b'
+                $pattern = 'backup|\bold\b|\btest\b'
             }
             if (($_.Extension -in $extensions) -or ($_.Name -match $pattern))
             {
