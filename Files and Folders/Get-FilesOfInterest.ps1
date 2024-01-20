@@ -1,7 +1,7 @@
 Function Get-FilesOfInterest
 {
     <#
-    
+
     .SYNOPSIS
 
     Identifies possible fiiles of interest when looking to
@@ -22,9 +22,32 @@ Function Get-FilesOfInterest
 
     Path and all of it's subdirectories will be considered.
 
+    .PARAMETER Extensions
+
+    A collection of extensions to search for.
+
+    .PARAMETER Pattern
+
+    File names matching this pattern will be returned.
+
     .EXAMPLE
 
     Get-FilesOfInterest -Path D:\Share\Engineering
+
+    .EXAMPLE
+
+    Get-FilesOfInterest -Path D:\Share -Extensions @('.exe', '.zip')
+    Search D:\Share for all zip and exe files.
+
+    .EXAMPLE
+
+    Get-FilesOfInterest -Path D:\Share -Pattern 'backup|\bold\b'
+    Returns files with "backup" or "old" in the file name.
+
+    .EXAMPLE
+
+    Get-FilesOfInterest -Path D:\Share -Pattern 'backup' -Extensions '.exe, .zip'
+    Find zip or exe files or files having backup in the file name.
 
     .NOTES
 
@@ -37,11 +60,14 @@ Function Get-FilesOfInterest
     #>
     param (
         [Parameter(Mandatory = $true)]
-        [string] $Path
+        [string] $Path,
+
+        [Parameter(Mandatory = $false)]
+        [string[]] $Extensions,
+
+        [Parameter(Mandatory = $false)]
+        [string] $Pattern
     )
-    $extensions = @('.iso', '.bak', '.zip', '.mp3', '.temp',
-                    '.tmp', '.dmp', '.rar', '.avi', '.flac',
-                    '.mp4', '.mov', '.tar', 'sfx', 'old')
 
     $param = @{
         Recurse = $true
@@ -49,9 +75,47 @@ Function Get-FilesOfInterest
         Path   = $Path
     }
     Get-ChildItem @param | ForEach-Object {
-        if (($_.Extension -in $extensions) -or ($_.Name -match "backup|OneDrive|\bold\b"))
+
+        # using custom extensions and pattern
+        if ($PSBoundParameters.ContainsKey('Extensions') -and $PSBoundParameters.ContainsKey('Pattern'))
         {
-            $_ | Select-Object -Property FullName, length, *Access*
+            if (($_.Extension -in $extensions) -or ($_.Name -match $pattern))
+            {
+                $result = $_
+            }
         }
+
+        # using custom extensions and not file name pattern
+        elseif ($PSBoundParameters.ContainsKey('Extensions'))
+        {
+            if ($_.Extension -in $extensions) { $result = $_ }
+        }
+
+        # using custom pattern and no extensions
+        elseif ($PSBoundParameters.ContainsKey('Pattern'))
+        {
+            if ($_.Name -match $pattern) { $result = $_ }
+        }
+
+        else
+        {
+            # using default pattern and extensions
+            if (-not ($PSBoundParameters.ContainsKey('Extensions')))
+            {
+                $Extensions = @('.iso', '.bak', '.zip', '.mp3', '.temp',
+                '.tmp', '.dmp', '.rar', '.avi', '.flac',
+                '.mp4', '.mov', '.tar', 'sfx', 'old')
+            }
+        
+            if (-not ($PSBoundParameters.ContainsKey('Pattern')))
+            {
+                $pattern = 'backup|OneDrive|\bold\b|\btest\b'
+            }
+            if (($_.Extension -in $extensions) -or ($_.Name -match $pattern))
+            {
+                $result = $_
+            }
+        }
+        $result | Select-Object -Property FullName, length, *Access*
     }
 } # Get-FilesOfInterest
