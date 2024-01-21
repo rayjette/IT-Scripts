@@ -97,14 +97,14 @@ Function Get-FilesOfInterest
             if ($_.Name -match $pattern) { $result = $_ }
         }
 
+        # using default pattern and extensions
         else
         {
-            # using default pattern and extensions
             if (-not ($PSBoundParameters.ContainsKey('Extensions')))
             {
                 $Extensions = @('.iso', '.bak', '.zip', '.mp3', '.temp',
                 '.tmp', '.dmp', '.rar', '.avi', '.flac',
-                '.mp4', '.mov', '.tar', 'sfx', 'old')
+                '.mp4', '.mov', '.tar', '.old')
             }
         
             if (-not ($PSBoundParameters.ContainsKey('Pattern')))
