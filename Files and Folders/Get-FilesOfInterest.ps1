@@ -82,7 +82,7 @@ Function Get-FilesOfInterest
         Path   = $Path
     }
     Get-ChildItem @param | ForEach-Object {
-        
+
         $result = $null
 
         # using custom extensions and pattern
@@ -111,7 +111,7 @@ Function Get-FilesOfInterest
         {
             if (-not ($PSBoundParameters.ContainsKey('Extensions')))
             {
-                $Extensions = $DefaultExtension
+                $Extensions = $DefaultExtensions
             }
         
             if (-not ($PSBoundParameters.ContainsKey('Pattern')))
