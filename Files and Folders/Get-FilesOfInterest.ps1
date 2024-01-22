@@ -82,6 +82,8 @@ Function Get-FilesOfInterest
         Path   = $Path
     }
     Get-ChildItem @param | ForEach-Object {
+        
+        $result = $null
 
         # using custom extensions and pattern
         if ($PSBoundParameters.ContainsKey('Extensions') -and $PSBoundParameters.ContainsKey('Pattern'))
@@ -121,6 +123,6 @@ Function Get-FilesOfInterest
                 $result = $_
             }
         }
-        $result | Select-Object -Property FullName, length, LastAccessTime, LastWriteTime, CreationTime
+        $result
     }
 } # Get-FilesOfInterest
