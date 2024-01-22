@@ -110,9 +110,6 @@ Function Get-FilesOfInterest
             if (-not ($PSBoundParameters.ContainsKey('Extensions')))
             {
                 $Extensions = $DefaultExtension
-                #$Extensions = @('.iso', '.bak', '.zip', '.mp3', '.temp',
-                #'.tmp', '.dmp', '.rar', '.avi', '.flac',
-                #'.mp4', '.mov', '.tar', '.old')
             }
         
             if (-not ($PSBoundParameters.ContainsKey('Pattern')))
@@ -124,6 +121,6 @@ Function Get-FilesOfInterest
                 $result = $_
             }
         }
-        $result | Select-Object -Property FullName, length, *Access*
+        $result | Select-Object -Property FullName, length, LastAccessTime, LastWriteTime, CreationTime
     }
 } # Get-FilesOfInterest
