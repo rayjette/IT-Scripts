@@ -69,6 +69,13 @@ Function Get-FilesOfInterest
         [string] $Pattern
     )
 
+    $DefaultExtensions = @('.iso', '.bak', '.zip', '.mp3', '.temp',
+                           '.tmp', '.dmp', '.rar', '.avi', '.flac',
+                           '.mp4', '.mov', '.tar', '.old')
+
+    # The Path parameter of Get-ChildItem expects the path to end of a \.
+    if (-not $Path.EndsWith('\')) { $path += '\' }
+
     $param = @{
         Recurse = $true
         File   = $true
@@ -102,9 +109,10 @@ Function Get-FilesOfInterest
         {
             if (-not ($PSBoundParameters.ContainsKey('Extensions')))
             {
-                $Extensions = @('.iso', '.bak', '.zip', '.mp3', '.temp',
-                '.tmp', '.dmp', '.rar', '.avi', '.flac',
-                '.mp4', '.mov', '.tar', '.old')
+                $Extensions = $DefaultExtension
+                #$Extensions = @('.iso', '.bak', '.zip', '.mp3', '.temp',
+                #'.tmp', '.dmp', '.rar', '.avi', '.flac',
+                #'.mp4', '.mov', '.tar', '.old')
             }
         
             if (-not ($PSBoundParameters.ContainsKey('Pattern')))
