@@ -13,6 +13,14 @@ Function Get-WindowsDefenderFirewallEvents
 
     The location of the firewall log file.  This parameter is only needed if you are using a log file that is not in the default location.
 
+    .EXAMPLE
+
+    Get-WindowsDefenderFirewallEvents
+
+    .EXAMPLE
+
+    Get-WindowsDefenderFirewallEvents -Path C:\Windows\System32\LogFiles\Firewall\pfirewall.log
+
     .NOTES
 
     Firewall logging must be enabled on the computer for Get-WindowsDefenerFirewallEvents to work.
