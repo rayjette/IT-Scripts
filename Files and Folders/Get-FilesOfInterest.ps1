@@ -71,7 +71,8 @@ Function Get-FilesOfInterest
 
     $DefaultExtensions = @('.iso', '.bak', '.zip', '.mp3', '.temp',
                            '.tmp', '.dmp', '.rar', '.avi', '.flac',
-                           '.mp4', '.mov', '.tar', '.old', '.pst')
+                           '.mp4', '.mov', '.tar', '.old', '.pst',
+                           '.qic')
 
     # The Path parameter of Get-ChildItem expects the path to end of a \.
     if (-not $Path.EndsWith('\')) { $path += '\' }
