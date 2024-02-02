@@ -36,7 +36,11 @@ Function Get-WindowsDefenderFirewallEvents
     if (Test-Path -Path $Path -PathType Leaf) {
         Get-Content -Path $path | Select-Object -Skip 5 | 
             ForEach-Object {
-                $split = $_ -split(' ')
+                # Split the log entry at a space and if the value is
+                # a single '-' then replace it with a null value.
+                $split = $_ -split(' ') | ForEach-Object {
+                    if ($_ -match '^\-$') { $null } else { $_ }
+                }
                 $dateTime = '{0} {1}' -f $split[0], $split[1]
                 [PSCustomObject]@{
                     DateTime   = [datetime] $dateTime
@@ -49,8 +53,8 @@ Function Get-WindowsDefenderFirewallEvents
                     Size       = $split[8]
                     TCPFlags   = $split[9]
                     TCPSyn     = $split[10]
-                    TcpAck     = $split[11]
-                    TcpWin     = $split[12]
+                    TCPAck     = $split[11]
+                    TCPWin     = $split[12]
                     IcmpType   = $split[13]
                     IcmpCode   = $split[14]
                     Info       = $split[15]
