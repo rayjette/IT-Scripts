@@ -117,7 +117,7 @@ Function Get-FilesOfInterest
         
             if (-not ($PSBoundParameters.ContainsKey('Pattern')))
             {
-                $pattern = 'backup|\bold\b|\btest\b|temp'
+                $pattern = 'backup|\bold\b|\btest\b|temp|telemetry'
             }
             if (($_.Extension -in $extensions) -or ($_.Name -match $pattern))
             {
