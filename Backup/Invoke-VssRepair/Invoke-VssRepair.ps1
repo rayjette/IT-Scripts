@@ -31,7 +31,6 @@ Function Invoke-VssRepair
     .NOTES
 
     Raymond Jette
-    version 1.0
 
     .LINK
 
@@ -64,7 +63,7 @@ Function Invoke-VssRepair
 
 
     # Mapping of VSS Writer Name to Service Name
-    $VssWriterToSerivceName = @{
+    $VssWriterToServiceName = @{
         'ASR Writer'                     = 'VSS'            # Volume Shadow Copy
         'BITS Writer'                    = 'BITS'           # Background Intelligent Transfer Service
         'COM+ REGDB Writer'              = 'VSS'            # Volume Shadow Copy
@@ -99,9 +98,9 @@ Function Invoke-VssRepair
         foreach ($writer in $failedVssWriters)
         {
             $writerName = $writer.name
-            if ($VssWriterToSerivceName.ContainsKey($writerName))
+            if ($VssWriterToServiceName.ContainsKey($writerName))
             {
-                $service = $VssWriterToSerivceName.$writerName
+                $service = $VssWriterToServiceName.$writerName
                 if ($Force -or $PSCmdlet.ShouldContinue($writer.name, 'Restart vss writer'))
                 {
                     Write-Warning -Message "The $($writer.name) is in a failed state.  Restarting the $service service..."
