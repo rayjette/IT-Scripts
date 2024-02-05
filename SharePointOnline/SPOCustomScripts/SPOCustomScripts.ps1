@@ -72,12 +72,15 @@ Function Enable-SPOAllowCustomScripts
                     Set-SPOSite -DenyAddAndCustomizePages 0 -Identity $site.url
                 }
             }
-            else
+            elseif ($site.DenyAddAndCustomizePages -eq 'Disabled')
             {
                 # Notify that user that custom scripts are already allowed to run on site
                 Write-Warning "Custom scripts are already enabled for $($site.url)"
                 Write-Verbose '  Custom scirpts are currently allowed'
                 Write-Verbose '  Nothing to change'
+            }
+            else {
+                Write-Error 'Unable to determine the status of site.'
             }
         }
     }
@@ -146,12 +149,14 @@ Function Disable-SPOAllowCustomScripts
                     Set-SPOSite -DenyAddAndCustomizePages 1 -Identity $site.url
                 }
             }
-            else
+            elseif ($site.DenyAddAndCustomizePagees -eq 'Enabled')
             {
                 # Notify that user that custom scripts are already disallowed on site
                 Write-Warning "Custom scripts are already disallowed for $($site.url)"
                 Write-Verbose '  Custom scirpts are currently disallowed'
                 Write-Verbose '  Nothing to change'
+            } else {
+                Write-Error 'Unable to determine the status of site.'
             }
         }
     }
