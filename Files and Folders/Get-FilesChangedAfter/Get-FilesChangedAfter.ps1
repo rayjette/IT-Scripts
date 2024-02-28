@@ -68,6 +68,7 @@ Function Get-FilesChangedAfter
     $params = @{
         Path   = $Path
         File   = $true
+        Force   = $true
         Recurse = $recurse
     }
     Get-ChildItem @params |
