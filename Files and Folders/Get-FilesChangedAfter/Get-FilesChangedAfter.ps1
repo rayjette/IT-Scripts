@@ -66,7 +66,7 @@ Function Get-FilesChangedAfter
         [switch] $Recurse
     )
     $params = @{
-        Path   = $Path
+        LiteralPath   = $Path
         File   = $true
         Force   = $true
         Recurse = $recurse
