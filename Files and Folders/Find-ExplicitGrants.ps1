@@ -44,38 +44,27 @@ Function Find-ExplicitGrants {
         [ValidateNotNullOrEmpty()]
         [string[]]$Name = '.*'
     )
-    Write-Verbose -Message "Entering $($myinvocation.mycommand)."
 
-    # if path ends with a ':' appends a \ to the end.
-    # This prevents issus with Get-ChildItem.
-    if ($path.endsWith(':')) {
-        $path = $path += '\'
-    }
 
-    $gciParams = @{
-        Path      = $Path
-        Directory = $true
-        Recurse   = $Recurse
-    }
-    Get-ChildItem @gciParams | ForEach-Object {
-        $item = $_
-        Write-Progress -Activity "Checking $($item.name) for explicit access."
-        Write-Verbose -Message "Getting acl for directory $($item.fullname)"
-        $acl = $item | Get-Acl
-        foreach ($ace in $acl) {
-            foreach ($accessRule in $ace.Access) {
-                Write-Verbose -Message " Checking if permission was inherited"
-                if ($accessRule.IsInherited -eq $false) {
-                    Write-Verbose -Message " Permission was explicit. Comparing against names."
-                    foreach ($n in $name) {
-                        Write-Verbose -Message " Checking access rule to see if $($n) has access."
-                        if ($accessRule.IdentityReference.Value -match $n) {
-                            Write-Verbose -Message "$($accessRule.IdentityReference) has explicit access.  Returning object."
-                            [PSCustomObject]@{
-                                Name        = $item.fullname
-                                ControlType = $accessRule.AccessControlType
-                                Identity    = $accessRule.IdentityReference
-                                FileSystemRights = $accessRule.FileSystemRights
+    Function FindExplicitGrants {
+        param (
+            [Parameter(ValueFromPipeline)]
+            $InputObject
+        )
+
+        Process {
+            $acl = $InputObject | Get-Acl
+            foreach ($ace in $acl) {
+                foreach ($accessRule in $ace.Access) {
+                    if ($accessRule.IsInherited -eq $false) {
+                        foreach ($n in $name) {
+                            if ($accessRule.IdentityReference.Value -match $n) {
+                                [PSCustomObject]@{
+                                    Name        = $InputObject.FullName
+                                    ControlType = $accessRule.AccessControlType
+                                    Identity    = $accessRule.IdentityReference
+                                    FileSystemRights = $accessRule.FileSystemRights
+                                }
                             }
                         }
                     }
@@ -83,5 +72,14 @@ Function Find-ExplicitGrants {
             }
         }
     }
-    Write-Verbose -Message "Exiting $($myinvocation.mycommand)."
+
+    
+    # if path ends with a ':' appends a \ to the end.
+    # This prevents issus with Get-ChildItem.
+    if ($path.endsWith(':')) {
+        $path = $path += '\'
+    }
+
+    Get-Item -Force -Path $Path  | FindExplicitGrants
+    Get-ChildItem -Force -Path $Path -Directory -Recurse | FindExplicitGrants
 }
