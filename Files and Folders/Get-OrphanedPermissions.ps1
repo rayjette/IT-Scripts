@@ -37,6 +37,12 @@ Function Get-OrphanedPermisions
 
         .NOTES
             Raymond Jette
+
+            WARNING: Please verify the results before removing any SIDS.
+            This script appears to be returning the SID's for built in accounts
+            such as Builtin\RDS Remote Access Servers.  These are not orphaned
+            permissions.  I will be looking for ways to identify these and
+            make sure they are removed from the output of this script.
     #>
     [OutputType([System.IO.DirectoryInfo])]
     [CmdletBinding()]
@@ -58,6 +64,15 @@ Function Get-OrphanedPermisions
             $InputObject
         )
 
+        Begin {
+            # if path ends with a ':' appends a \ to the end.
+            # This prevents issus with Get-ChildItem.
+            if ($path.endsWith(':')) {
+                $path = $path += '\'
+            }
+
+        }
+        
         Process {
             $acl = ($InputObject | Get-Acl).access
 
@@ -66,8 +81,10 @@ Function Get-OrphanedPermisions
                 if ($OnlyExplicit -and $ace.IsInherited) {
                     continue
                 }
-        
-                if ($ace.identityReference.gettype().name -eq 'SecurityIdentifier') {
+                # capability SID's start with S-1-15-3-
+                if (($ace.identityReference.gettype().name -eq 'SecurityIdentifier') -and
+                        ($ace.IdentityReference -notmatch '^S\-1\-15\-3\-.*$')) {
+
                     [PSCustomObject]@{
                         Directory = $InputObject.FullName
                         SID = $ace.identityReference.Value
@@ -76,7 +93,6 @@ Function Get-OrphanedPermisions
             }
         }
     }
-
 
     if (Test-path -LiteralPath $Path -PathType Container) {
         
