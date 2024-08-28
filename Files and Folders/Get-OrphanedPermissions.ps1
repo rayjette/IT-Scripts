@@ -82,8 +82,10 @@ Function Get-OrphanedPermisions
                     continue
                 }
                 # capability SID's start with S-1-15-3-
+                # app container SID's start with S-1-15-2-
                 if (($ace.identityReference.gettype().name -eq 'SecurityIdentifier') -and
-                        ($ace.IdentityReference -notmatch '^S\-1\-15\-3\-.*$')) {
+                        ($ace.IdentityReference -notmatch '^S\-1\-15\-3\-.*$') -and
+                        ($ace.IdentityReference -notmatch '^S\-1\-15\-2\-.*$')) {
 
                     [PSCustomObject]@{
                         Directory = $InputObject.FullName
