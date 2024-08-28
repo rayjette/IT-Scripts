@@ -37,12 +37,6 @@ Function Get-OrphanedPermisions
 
         .NOTES
             Raymond Jette
-
-            WARNING: Please verify the results before removing any SIDS.
-            This script appears to be returning the SID's for built in accounts
-            such as Builtin\RDS Remote Access Servers.  These are not orphaned
-            permissions.  I will be looking for ways to identify these and
-            make sure they are removed from the output of this script.
     #>
     [OutputType([System.IO.DirectoryInfo])]
     [CmdletBinding()]
