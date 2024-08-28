@@ -99,7 +99,7 @@ Function Get-OrphanedPermisions
         Get-Item -Force -Path $Path  | GetOrphanedPermissions
 
         if ($Recurse) {
-            foreach ($folder in (Get-ChildItem -Path $Path -Recurse -Directory)) {
+            foreach ($folder in (Get-ChildItem -Path $Path -Recurse -Directory -ErrorAction 'Continue')) {
                 $folder | GetOrphanedPermissions
             }
         }
