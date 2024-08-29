@@ -57,15 +57,6 @@ Function Get-OrphanedPermisions
             [Parameter(ValueFromPipeline)]
             $InputObject
         )
-
-        Begin {
-            # if path ends with a ':' appends a \ to the end.
-            # This prevents issus with Get-ChildItem.
-            if ($path.endsWith(':')) {
-                $path = $path += '\'
-            }
-
-        }
         
         Process {
             $acl = ($InputObject | Get-Acl).access
@@ -90,6 +81,12 @@ Function Get-OrphanedPermisions
                 }
             }
         }
+    }
+
+    # if path ends with a ':' appends a \ to the end.
+    # This prevents issus with Get-ChildItem.
+    if ($path.endsWith(':')) {
+        $path = $path += '\'
     }
 
     if (Test-path -LiteralPath $Path -PathType Container) {
