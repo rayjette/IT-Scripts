@@ -14,10 +14,6 @@ Function Find-ExplicitGrants {
     .PARAMETER Recurse
         Recursively check path for explicit grants
 
-    .PARAMETER Name
-        This is the user or group you are looking for explicit grants for.
-        You can specify one or more name's.
-
     .INPUTS
         None.  Find-ExplicitGrants does not accept input from the pipeline.
 
@@ -25,9 +21,9 @@ Function Find-ExplicitGrants {
         System.Management.Automation
 
     .EXAMPLE
-        Find-ExplicitGrants -Path C:\ -Recurse -Name administrator | Out-Gridview
-        Find explicit grants for the administrator user located
-        on any directory or subdirectory located on the C:\ drive.
+        Find-ExplicitGrants -Path C:\ -Recurse | Out-Gridview
+        Find explicit grants for any directory or subdirectory
+        located on the C:\ drive.
 
     .NOTES
         Raymond Jette
@@ -39,10 +35,7 @@ Function Find-ExplicitGrants {
         [ValidateNotNullOrEmpty()]
         [string]$Path,
 
-        [switch]$Recurse,
-
-        [ValidateNotNullOrEmpty()]
-        [string[]]$Name = '.*'
+        [switch]$Recurse
     )
 
 
@@ -57,14 +50,12 @@ Function Find-ExplicitGrants {
             foreach ($ace in $acl) {
                 foreach ($accessRule in $ace.Access) {
                     if ($accessRule.IsInherited -eq $false) {
-                        foreach ($n in $name) {
-                            if ($accessRule.IdentityReference.Value -match $n) {
-                                [PSCustomObject]@{
-                                    Name        = $InputObject.FullName
-                                    ControlType = $accessRule.AccessControlType
-                                    Identity    = $accessRule.IdentityReference
-                                    FileSystemRights = $accessRule.FileSystemRights
-                                }
+                        if ($accessRule.IdentityReference.Value -match $n) {
+                            [PSCustomObject]@{
+                                Name        = $InputObject.FullName
+                                ControlType = $accessRule.AccessControlType
+                                Identity    = $accessRule.IdentityReference
+                                FileSystemRights = $accessRule.FileSystemRights
                             }
                         }
                     }
