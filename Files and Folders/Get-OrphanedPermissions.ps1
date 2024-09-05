@@ -70,9 +70,10 @@ Function Get-OrphanedPermisions
                 # app container SID's start with S-1-15-2-
                 # service SID's start with S-1-5-80-
                 # built-in system domain SID's start with S-1-5-32
+                # IIS App Pools SID's start with S-1-5-82
                 if (($ace.identityReference.gettype().name -eq 'SecurityIdentifier') -and
                         ($ace.IdentityReference -notmatch '^S\-1\-15\-(3|2)\-.*$') -and
-                        ($ace.IdentityReference -notmatch '^S\-1\-5\-(80|32)\-.*$')) {
+                        ($ace.IdentityReference -notmatch '^S\-1\-5\-(80|82|32)\-.*$')) {
 
                     [PSCustomObject]@{
                         Directory = $InputObject.FullName
