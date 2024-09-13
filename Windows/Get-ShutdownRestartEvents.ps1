@@ -1,4 +1,24 @@
 Function Get-ShutdownRestartEvents {
+    <#
+        .SYNOPSIS
+            Gets information about reboot and shutdown events.
+
+        .DESCRIPTION
+            Gets information about reboot and shutdown events.
+
+        .EXAMPLE
+            Get-ShutdownRestartEvents
+
+        .INPUTS
+            Get-ShutdownRestartEvents does not accept input from the pipeline.
+
+        .OUTPUTS
+            System.Management.Automation.PSCustomObject.
+
+        .NOTES
+            Raymond Jette
+    #>
+
     $filter = @{
         LogName = 'System'
         ID = @(41, 1074)
@@ -24,7 +44,7 @@ Function Get-ShutdownRestartEvents {
         } elseif ($event.id -eq 41) {
             $message = 'The system has rebooted without cleanly shutting down first.'
             if ($event.message -like "*$($message)*") {
-                $result.reason = 'Stopped respnding, crashed, or lost power'
+                $result.reason = 'Stopped responding, crashed, or lost power'
                 $result.action = 'Reboot or power on'
                 
             } else {
