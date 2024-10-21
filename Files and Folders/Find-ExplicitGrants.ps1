@@ -49,14 +49,13 @@ Function Find-ExplicitGrants {
             $acl = $InputObject | Get-Acl
             foreach ($ace in $acl) {
                 foreach ($accessRule in $ace.Access) {
-                    if ($accessRule.IsInherited -eq $false) {
-                        if ($accessRule.IdentityReference.Value -match $n) {
-                            [PSCustomObject]@{
-                                Name        = $InputObject.FullName
-                                ControlType = $accessRule.AccessControlType
-                                Identity    = $accessRule.IdentityReference
-                                FileSystemRights = $accessRule.FileSystemRights
-                            }
+                    if ($accessRule.IsInherited -eq $false -and 
+                            $accessRule.IdentityReference.Value -match $n) {
+                        [PSCustomObject]@{
+                            Name        = $InputObject.FullName
+                            ControlType = $accessRule.AccessControlType
+                            Identity    = $accessRule.IdentityReference
+                            FileSystemRights = $accessRule.FileSystemRights
                         }
                     }
                 }
