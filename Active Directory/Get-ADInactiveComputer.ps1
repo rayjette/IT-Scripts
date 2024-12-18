@@ -9,8 +9,8 @@ Function Get-ADInactiveComputer {
         .PARAMETER InactiveDays
         Accounts which have not been logged on to in this number of days will be considered inactive.  A default value of 90 InactiveDays is provided.
 
-        .PARAMETER OnlyNeverLogon
-        Find Active Directory computer accounts which have never been logged on to.
+        .PARAMETER NeverLogon
+        The NeverLogon parameter will cause Get-ADInactiveComputer to return computer accounts which have never been used to logon.
 
         .PARAMETER DisabledOnly
         Find Active Directory computer accounts which are disabled.
@@ -38,7 +38,7 @@ Function Get-ADInactiveComputer {
         [Int32]$InactiveDays = 90,
 
         [Parameter(Mandatory, ParameterSetName='NeverLogon')]
-        [switch]$OnlyNeverLogon,
+        [switch]$NeverLogon,
 
         [Parameter(Mandatory, ParameterSetName='DisabledOnly')]
         [switch]$DisabledOnly,
@@ -69,8 +69,8 @@ Function Get-ADInactiveComputer {
             }
         }
     }
-    # If the OnlyNeverLogon parameter is present output computers which have never logged on.
-    elseif ($PSBoundParameters.ContainsKey('OnlyNeverLogon')) {
+    # If the NeverLogon parameter is present output computers which have never logged on.
+    elseif ($PSBoundParameters.ContainsKey('NeverLogon')) {
         $computers | Where-Object {$null -eq $_.LastLogonDate}
     }
     # Output all computers which have not logged on since or before $filterDate.
