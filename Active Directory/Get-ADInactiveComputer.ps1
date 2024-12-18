@@ -1,10 +1,10 @@
-Function Find-ADUnusedComputers {
+Function Get-ADInactiveComputer {
     <#
         .SYNOPSIS
-        Find unused Active Directory computer account objects.
+        Find inactive computer account objects.
 
         .DESCRIPTION
-        Find unused Active Directory computer account objects.
+        Find inactive Active Directory computer account objects.
 
         .PARAMETER InactiveDays
         Accounts which have not been logged on to in this number of days will be considered inactive.  A default value of 90 InactiveDays is provided.
@@ -16,18 +16,18 @@ Function Find-ADUnusedComputers {
         Find Active Directory computer accounts which are disabled.
 
         .EXAMPLE
-        Find-ADUnsuedComputers
+        Get-ADInactiveComputer
         Finds Active Directory computer objects which have not been logged on for 90 days or more or which have never been logged on to.
 
         .EXAMPLE
-        Find-ADUnusedComputers -InactiveDays 60
+        Get-ADInactiveComputer -InactiveDays 60
         Finds Active Directory computer objects which have not been logged on for 60 days or more or have never been logged on to.
 
-        Find-ADUnusedComputers -DisabledOnly
+        Get-ADInactiveComputer -DisabledOnly
         Finds Active Directory computer accounts which are disabled.
 
         .INPUTS
-        None.  Find-ADUnusedComputers does not accept pipeline input.
+        None.  Get-ADInactiveComputer does not accept pipeline input.
 
         .OUTPUTS
         Microsoft.ActiveDirectory.Management.ADComputer
@@ -77,4 +77,4 @@ Function Find-ADUnusedComputers {
     else {
         $computers | Where-Object {$_.LastLogonDate -lt $filterDate}
     }
-} # Find-ADUnusedComputers
+} # Get-ADInactiveComputer
