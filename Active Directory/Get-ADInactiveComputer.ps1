@@ -1,28 +1,32 @@
 Function Get-ADInactiveComputer {
     <#
         .SYNOPSIS
-        Find inactive computer account objects.
+        Find inactive computer account objects in Active Directory.
 
         .DESCRIPTION
-        Find inactive Active Directory computer account objects.
+        Get-ADInactiveComputer searches for inactive Active Directory computer account objects.
+        It can filter accounts based on the number of days since the last logon,
+        accounts that have never logged on, and accounts that are disabled.
 
         .PARAMETER InactiveDays
-        Accounts which have not been logged on to in this number of days will be considered inactive.  A default value of 90 InactiveDays is provided.
+        Specifies the number of days since the last logon to consider a computer account inactive.
+        The default value is 90 days.
 
         .PARAMETER NeverLogon
-        The NeverLogon parameter will cause Get-ADInactiveComputer to return computer accounts which have never been used to logon.
+        Filters the results to include only computer accounts that have never logged on.
 
         .PARAMETER DisabledOnly
-        Find Active Directory computer accounts which are disabled.
+        Filters the result to include only computer accounts that are disabled.
 
         .EXAMPLE
         Get-ADInactiveComputer
-        Finds Active Directory computer objects which have not been logged on for 90 days or more or which have never been logged on to.
+        Finds Active Directory computer account objects which have been inactive for 90 days or more.
 
         .EXAMPLE
         Get-ADInactiveComputer -InactiveDays 60
-        Finds Active Directory computer objects which have not been logged on for 60 days or more or have never been logged on to.
+        Finds Active Directory computer objects which have not been logged on for 60 days or more.
 
+        .EXAMPLE
         Get-ADInactiveComputer -DisabledOnly
         Finds Active Directory computer accounts which are disabled.
 
@@ -31,6 +35,9 @@ Function Get-ADInactiveComputer {
 
         .OUTPUTS
         Microsoft.ActiveDirectory.Management.ADComputer
+
+        .NOTES
+        Raymond Jette
     #>
     [CmdletBinding(DefaultParameterSetName = 'Default')]
     Param (
