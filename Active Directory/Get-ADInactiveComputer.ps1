@@ -78,30 +78,10 @@ Function Get-ADInactiveComputer {
     # Retrieve computer objects from Active Directory
     $computers = Get-ADComputer @splat
     
-    # Filter for disabled computer objects if DisabledOnly parameter is specified
-    if ($PSBoundParameters.ContainsKey('DisabledOnly')) {
-        foreach ($computer in $computers) {
-            if (-not ($computer.enabled)) {
-                $computer
-            }
-        }
-    }
-    
-    # If the NeverLogon parameter is present, output computers which have never logged on.
-    elseif ($PSBoundParameters.ContainsKey('NeverLogon')) {
-        foreach ($computer in $computers) {
-            if (-not $computer.LastLogonDate) {
-                $computer
-            }
-        }
-    }
-
-    # Filter for computers that have not logged on since the filter date
-    else {
-        foreach ($computer in $computers) {
-            if ($computer.LastLogonDate -lt $filterDate) {
-                $computer
-            }
-        }
+    # Filter computers base on specified criteria
+    $computers | Where-Object {
+        ($NeverLogon -and -not $_.LastLogonDate) -or
+        ($DisabledOnly -and -not $_.Enabled) -or
+        ($_.LastLogonDate -lt $filterDate)
     }
 } # Get-ADInactiveComputer
