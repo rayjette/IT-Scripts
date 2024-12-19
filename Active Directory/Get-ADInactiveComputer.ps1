@@ -18,6 +18,9 @@ Function Get-ADInactiveComputer {
         .PARAMETER DisabledOnly
         Filters the result to include only computer accounts that are disabled.
 
+        .PARAMETER SearchBase
+        Specifies the distinguished name of the OU to search in.
+
         .EXAMPLE
         Get-ADInactiveComputer
         Finds Active Directory computer account objects which have been inactive for 90 days or more.
@@ -29,6 +32,14 @@ Function Get-ADInactiveComputer {
         .EXAMPLE
         Get-ADInactiveComputer -DisabledOnly
         Finds Active Directory computer accounts which are disabled.
+
+        .EXAMPLE
+        Get-ADInactiveComputer -NeverLogon
+        Finds Active Directory computer accounts which have never been logged on.
+
+        .EXAMPLE
+        Get-ADInactiveComputer -SearchBase 'OU=Computers,DC=contoso,DC=com'
+        Finds Active Directory computer accounts in the specified OU.
 
         .INPUTS
         None.  Get-ADInactiveComputer does not accept pipeline input.
