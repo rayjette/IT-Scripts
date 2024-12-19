@@ -1,3 +1,5 @@
+#Requires -Modules ActiveDirectory
+
 Function Get-ADInactiveComputer {
     <#
     .SYNOPSIS
@@ -75,13 +77,17 @@ Function Get-ADInactiveComputer {
         $splat.add('SearchBase', $SearchBase)
     }
 
-    # Retrieve computer objects from Active Directory
-    $computers = Get-ADComputer @splat
-    
-    # Filter computers base on specified criteria
-    $computers | Where-Object {
-        ($NeverLogon -and -not $_.LastLogonDate) -or
-        ($DisabledOnly -and -not $_.Enabled) -or
-        ($_.LastLogonDate -lt $filterDate)
+    try {
+        # Retrieve computer objects from Active Directory
+        $computers = Get-ADComputer @splat
+        
+        # Filter computers base on specified criteria
+        $computers | Where-Object {
+            ($NeverLogon -and -not $_.LastLogonDate) -or
+            ($DisabledOnly -and -not $_.Enabled) -or
+            ($_.LastLogonDate -lt $filterDate)
+        }
+    } catch {
+        Write-Error _Message "An error occurred while retrieving or filtering computer accounts: $_"
     }
 } # Get-ADInactiveComputer
