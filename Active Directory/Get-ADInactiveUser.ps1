@@ -59,12 +59,6 @@ Function Get-ADInactiveUser {
         [string]$SearchBase
     )
 
-    # A helper function to test if an AD User object is enabled
-    Function Test-IsADUserEnabled($Identity) {
-        [bool](Get-ADUser -Identity $Identity).enabled
-    }
-
-
     $filterDate = (Get-Date).AddDays(-$Days)
 
     # The parameter for Get-ADUser
@@ -77,11 +71,15 @@ Function Get-ADInactiveUser {
         $splat.add('SearchBase', $SearchBase)
     }
 
-    $users = Get-ADUser @splat
+    try {
+        $users = Get-ADUser @splat
 
-    $users | Where-Object {
-        ($NeverLogon -and -not $_.LastLogonDate) -or
-        ($DisabledOnly -and -not $_.Enabled) -or
-        ($_.LastLogonDate -lt $filterDate)
+        $users | Where-Object {
+            ($NeverLogon -and -not $_.LastLogonDate) -or
+            ($DisabledOnly -and -not $_.Enabled) -or
+            ($_.LastLogonDate -lt $filterDate)
+        }
+    } catch {
+        Write-Error _Message "An error occurred while retrieving or filtering user accounts: $_"
     }
 }
