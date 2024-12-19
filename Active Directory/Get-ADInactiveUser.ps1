@@ -17,16 +17,23 @@ Function Get-ADInactiveUser {
     .PARAMETER DisabledOnly
         Find Active Directory user accounts which are disabled.
 
+    .PARAMETER SearchBase
+        Specifies the Organizational Unit (OU) to search within.
+
     .EXAMPLE
-        Find-ADUnsuedComputers
-        Finds Active Directory user objects which have not been logged on for 90 days or more or which have never been logged on to.
+        Get-ADInactiveUser
+        Finds Active Directory user objects which have not been logged on for 90 days or more.
 
     .EXAMPLE
         Get-ADInactiveUser -Days 60
-        Finds Active Directory user objects which have not been logged on for 60 days or more or have never been logged on to.
+        Finds Active Directory user objects which have not been logged on for 60 days or more.
 
         Get-ADInactiveUser -DisabledOnly
         Finds Active Directory user accounts which are disabled.
+
+    .EXAMPLE
+        Get-ADInactiveUser -SearchBase 'OU=Users,DC=contoso,DC=com'
+        Finds Active Directory computer accounts in the specified OU.
 
     .INPUTS
         None.  Get-ADInactiveUser does not accept pipeline input.
