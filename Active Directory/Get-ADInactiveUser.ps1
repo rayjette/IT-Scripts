@@ -11,7 +11,7 @@ Function Get-ADInactiveUser {
     .PARAMETER Days
         Accounts which have not been logged on to in this number of days will be considered inactive.  A default value of 90 days is provided.
 
-    .PARAMETER NeverLogonOnly
+    .PARAMETER NeverLogon
         Find Active Directory user accounts which have never been logged on to.
 
     .PARAMETER DisabledOnly
@@ -44,7 +44,7 @@ Function Get-ADInactiveUser {
         [Int32]$Days = 90,
 
         [Parameter(Mandatory, ParameterSetName='NeverLogon')]
-        [switch]$NeverLogonOnly,
+        [switch]$NeverLogon,
 
         [Parameter(Mandatory, ParameterSetName='DisabledOnly')]
         [switch]$DisabledOnly,
@@ -71,18 +71,10 @@ Function Get-ADInactiveUser {
     }
 
     $users = Get-ADUser @splat
-    
-    if ($PSBoundParameters.ContainsKey('DisabledOnly')) {
-        foreach ($user in $users) {
-            if (-not (Test-IsADUserEnabled -Identity $user.samaccountname)) {
-                $user
-            }
-        }
 
-    } elseif ($PSBoundParameters.ContainsKey('NeverLogonOnly')) {
-        $users | Where-Object {$null -eq $_.LastLogonDate}
-
-    } else {
-        $users | Where-Object {$_.LastLogonDate -lt $filterDate}
+    $users | Where-Object {
+        ($NeverLogon -and -not $_.LastLogonDate) -or
+        ($DisabledOnly -and -not $_.Enabled) -or
+        ($_.LastLogonDate -lt $filterDate)
     }
 }
