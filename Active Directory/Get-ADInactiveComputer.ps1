@@ -9,13 +9,13 @@ Function Get-ADInactiveComputer {
             Get-ADInactiveComputer searches for computer accounts in Active Directory that are inactive based on the specific criteria.
 
     .PARAMETER InactiveDays
-        Specifies the number of days a computer account has been inactive.  Default is 90 days.
+        Specifies the number of days a computer account has not been used to be considered inactive.  Default is 90 days.
 
     .PARAMETER NeverLogon
-        Filters the results to include only computer accounts that have never logged on.
+        Reports only computer accounts that have never logged on.
 
     .PARAMETER DisabledOnly
-        Finds computer accounts that are disabled.
+        Reports only computer accounts that are disabled.
 
     .PARAMETER SearchBase
         Specifies the Organizational Unit (OU) to search within.
