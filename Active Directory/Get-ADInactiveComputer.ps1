@@ -88,6 +88,6 @@ Function Get-ADInactiveComputer {
             ($_.LastLogonDate -lt $filterDate)
         }
     } catch {
-        Write-Error _Message "An error occurred while retrieving or filtering computer accounts: $_"
+        Write-Error -Message "An error occurred while retrieving or filtering computer accounts: $_"
     }
 } # Get-ADInactiveComputer
