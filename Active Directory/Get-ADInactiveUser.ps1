@@ -3,33 +3,38 @@
 Function Get-ADInactiveUser {
     <#
     .SYNOPSIS
-        Find unused Active Directory user account objects.
+        Find inactive user account objects in Active Directory.
 
     .DESCRIPTION
-        Find unused Active Directory user account objects.
+        Get-ADInactiveUser searches for user accounts in Active Directory that are inactive based on the specific criteria.
 
     .PARAMETER Days
-        Accounts which have not been logged on to in this number of days will be considered inactive.  A default value of 90 days is provided.
+        Specifies the number of days a user account has not been used to be considered inactive.  Default is 90 days.
 
     .PARAMETER NeverLogon
-        Find Active Directory user accounts which have never been logged on to.
+        Reports only user accounts that have never logged on.
 
     .PARAMETER DisabledOnly
-        Find Active Directory user accounts which are disabled.
+        Reports only user accounts that are disabled.
 
     .PARAMETER SearchBase
         Specifies the Organizational Unit (OU) to search within.
 
     .EXAMPLE
         Get-ADInactiveUser
-        Finds Active Directory user objects which have not been logged on for 90 days or more.
+        Finds Active Directory user account objects which have been inactive for 90 days or more.
 
     .EXAMPLE
         Get-ADInactiveUser -Days 60
         Finds Active Directory user objects which have not been logged on for 60 days or more.
 
+    .EXAMPLE
         Get-ADInactiveUser -DisabledOnly
-        Finds Active Directory user accounts which are disabled.
+        Reports only Active Directory user accounts which are disabled.
+
+    .EXAMPLE
+        Get-ADInactiveUser -NeverLogon
+        Reports only Active Directory user accounts which have never been logged on.
 
     .EXAMPLE
         Get-ADInactiveUser -SearchBase 'OU=Users,DC=contoso,DC=com'
@@ -59,6 +64,7 @@ Function Get-ADInactiveUser {
         [string]$SearchBase
     )
 
+    # Calculate the date to filter inactive computers
     $filterDate = (Get-Date).AddDays(-$Days)
 
     # The parameter for Get-ADUser
@@ -67,13 +73,16 @@ Function Get-ADInactiveUser {
         Properties = 'LastLogonDate'
     }
 
+    # Add SearchBase parameter if specified
     if ($PSBoundParameters.ContainsKey('SearchBase')) {
         $splat.add('SearchBase', $SearchBase)
     }
 
     try {
+        # Retrieve user objects from Active Directory
         $users = Get-ADUser @splat
 
+        # Filter users base on specified criteria
         $users | Where-Object {
             ($NeverLogon -and -not $_.LastLogonDate) -or
             ($DisabledOnly -and -not $_.Enabled) -or
