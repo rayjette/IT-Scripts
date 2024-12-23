@@ -5,23 +5,21 @@ Function Get-ADEmptyGPO
 {
     <#
     .SYNOPSIS
-        Returns unused group policy objects.
+        Retrieves unused Group Policy Objects (GPOs) in Active Directory.
 
     .DESCRIPTION
-        Returns unused group policy objects.
-
-        Returns group policy objects which have never had there settings modified after creation.
-        If the settings were modified and then changed back the gpo will not be returned because
-        we are looking at the dsversion value on the gpo.
+        This function identifies and returns Group Policy Objects (GPOs) that have never had their settings modified since creation.
+        It checks the dsversion value of the GPO to determine if any settings have been changed.
+        If settings were modified and then revered, the GPO will not be considered empty and will no be returned.
 
     .PARAMETER OnlyLinked
-        Only empty group policy objects that are linked somewhere will be output.  Unlinked GPO's
-        will not be shown.
+        If specified, only GPOs that are linked to an Active Directory container (such as a site, domain, or organizational unit) will be returned.
+        Unlinked GPOs will be excluded from the output.
 
     .EXAMPLE
         Get-ADEmptyGPO
 
-        Return group policy objects that have never been altered. 
+        Retrieves all GPOs that have never been altered since their creation.
 
     .INPUTS
         None.  Get-ADEmptyGPO does not except input via the pipeline.
