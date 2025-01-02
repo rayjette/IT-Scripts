@@ -40,6 +40,7 @@ Function Get-ADEmptyGPO
         [switch] $OnlyLinked
     )
 
+    # A helper function to retrieve unmodified GPOs
     Function Get-UnmodifiedGPOs {
         [CmdletBinding()]
         param (
@@ -57,6 +58,7 @@ Function Get-ADEmptyGPO
     }
 
 
+    # A helper function to determine if a GPO is linked to an Active Directory container
     Function Test-IsGPOLinked {
         param (
             [Parameter(Mandatory = $true)]
