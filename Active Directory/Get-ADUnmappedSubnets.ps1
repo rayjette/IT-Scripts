@@ -63,14 +63,14 @@ Function Get-ADUnmappedSubnets {
                 [string]$InputObject
             )
             PROCESS {
-                if ($_ -Match '(\d{2}/\d{2})\s(\d{2}:\d{2}:\d{2})\s(\[\d+\])?\s?(.*:)\s(.*:)\s(.*)\s(.*)') {
+                if ($_ -Match '^(\d{2}\/\d{2}) (\d{2}:\d{2}:\d{2}) \[\d+\] (\S+): NO_CLIENT_SITE: (\S+) ((\d{1,3})(\.\d{1,3}){3})$') {
                     [PSCustomObject]@{
                         Date       = $matches[1]
                         Time       = $matches[2]
-                        Domain     = $matches[4] -replace ':',''
-                        Host       = $matches[6]
-                        ReportedOn = $DC
-                        IP         = $matches[7]
+                        Domain     = $matches[3]
+                        Host       = $matches[4]
+                        DomainController = $DC
+                        IP         = $matches[5]
                     }
                 }
             }
