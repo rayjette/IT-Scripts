@@ -137,10 +137,6 @@ Function Find-AdminSDHolderLegacyObject
         'Schema Admins',
         'Server Operators'
     )
-
-    # Get the AdminSDHolder object
-    $adminSDHolder = Get-ADObject -Filter { Name -eq 'AdminSDHolder' } -Properties ntSecurityDescriptor
-
     # Get all objects with the AdminCount attribute set to 1
     $protectedObjects = Get-ADObject -Filter { AdminCount -eq 1 } -Properties AdminCount, sAMAccountName
 
