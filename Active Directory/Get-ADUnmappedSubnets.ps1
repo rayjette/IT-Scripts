@@ -1,4 +1,4 @@
-#Requires -RunAsAdmin
+#Requires -RunAsAdministrator
 #Requires -Modules ActiveDirectory
 
 Function Get-ADUnmappedSubnets {
