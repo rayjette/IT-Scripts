@@ -1,3 +1,5 @@
+#Requires -RunAsAdministrator
+
 Function Set-ADLDAPInterfaceDiagnosticLogging {
     <#
     .SYNOPSIS
