@@ -15,7 +15,6 @@ Function Find-DisabledMembersInGroups {
     .PARAMETER Type
         Specifies the type of the group (Security or Distribution).  This parameter is optional
 
-
     .PARAMETER SearchBase
         Specifies the distinguished name of an Active Directory container or organizational unit. The search for
         groups with disabled members will be limited to this container and its children. This parameter is optional.
