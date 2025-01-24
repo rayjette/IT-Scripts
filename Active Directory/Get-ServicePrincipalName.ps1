@@ -49,7 +49,6 @@ Function Get-ServicePrincipalName {
 
     .NOTES
         Author: Raymond Jette
-        Date: 01/15/2025
         https://github.com/rayjette
     #>
 
@@ -69,57 +68,68 @@ Function Get-ServicePrincipalName {
         [string]$Name
     )
 
-    # Define a hashtable to store common parameters for the Get-ADObject, Get-ADUser,
-    # and Get-ADComputer cmdlets.
+    # Helper function to build LDAP filter
+    function Build-LDAPFilter {
+        param (
+            [string]$Type,
+            [string]$Name
+        )
+        if ($type -eq 'User') {
+            if ($Name) {
+                "(&(servicePrincipalName=*)(|(samAccountName=$Name)(userPrincipalName=*$Name*)))"
+            } else {
+                "(servicePrincipalName=*)"
+            }
+        } elseif ($type -eq 'Computer') {
+            if ($Name) {
+                "(&(servicePrincipalName=*)(|(samAccountName=$Name)(dNSHostName=*$Name*)))"
+            } else {
+                "(servicePrincipalName=*)"
+            }
+        }
+    }
+
+    # Define common parameters for AD queries
     $commonParams = @{
         Properties = 'servicePrincipalName'
     }
 
-    # Process based on which ParameterSet is being used
-    switch ($PSCmdlet.ParameterSetName) {
-        "All" {
-            # If 'All' parameter is selected, retrieve all objects that have a service principal name (SPN)
-            $commonParams.LDAPFilter = "(servicePrincipalName=*)"
-            $adObjects = Get-ADObject @commonParams
-            break
-        }
-        "TypeName" {
-            # If 'TypeName' parameter set is selected, filter by user or computer type
-            if ($Type -eq "User") {
-                $commonParams.LDAPFilter = if ($Name) {
-                    "(&(servicePrincipalName=*)(|(samAccountName=$Name)(userPrincipalName=*$Name*)))"
-                } else {
-                    "(servicePrincipalName=*)"
-                }
-
-                # Query Active Directory for user objects
-                $adObjects = Get-ADUser @commonParams
-
-            } elseif ($Type -eq "Computer") {
-                $commonParams.LDAPFilter = if ($Name) {
-                    "(&(servicePrincipalName=*)(|(samAccountName=$Name)(dNSHostName=*$Name*)))"
-                } else {
-                    "(servicePrincipalName=*)"
-                }
-
-                # Query Active Directory for computer objects
-                $adObjects = Get-ADComputer @commonParams
+    # Process based on the selected parameter set
+    try {
+        switch ($PSCmdlet.ParameterSetName) {
+            "All" {
+                # Retrieve all objects with SPNs
+                $commonParams.LDAPFilter = "(servicePrincipalName=*)"
+                $adObjects = Get-ADObject @commonParams
+                break
             }
-            break
-        }
-    }
-
-    # Loop all objects and return a custom object for each SPN
-    foreach ($adObject in $adObjects) {
-        $spnSplit = $adObject.servicePrincipalName -split ','
-        foreach ($spn in $spnSplit) {
-            [PSCustomObject]@{
-                Name = $adObject.Name
-                SPN  = $spn
-                DN   = $adObject.DistinguishedName
-                ObjectClass = $adObject.ObjectClass
+            "TypeName" {
+                # Build LDAP filter based on type and name
+                $commonParams.LDAPFilter = Build-LDAPFilter -Type $Type -Name $Name
+                
+                # Query based on the type (User or Computer)
+                if ($Type -eq "User") {
+                    $adObjects = Get-ADUser @commonParams
+                } elseif ($Type -eq "Computer") {
+                    $adObjects = Get-ADComputer @commonParams
+                }
+                break
             }
         }
-    }
 
+        # Process results
+        foreach ($adObject in $adObjects) {
+            $spnSplit = $adObject.servicePrincipalName -split ','
+            foreach ($spn in $spnSplit) {
+                [PSCustomObject]@{
+                    Name = $adObject.Name
+                    SPN  = $spn
+                    DN   = $adObject.DistinguishedName
+                    ObjectClass = $adObject.ObjectClass
+                }
+            }
+        }
+    } catch {
+        Write-Error "An error occurred: $_"
+    }
 }
