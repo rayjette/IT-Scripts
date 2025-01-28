@@ -74,6 +74,7 @@ Function Invoke-VssRepair {
         'SqlServerWriter'                = 'SQLWriter'      # SQL Server VSS Writer
         'System Writer'                  = 'CryptSvc'       # Cryptographic Services
         'TermServLicensing'              = 'TermServLicensing'  # Remote Desktop Licensing
+        'VMware VSS Writer'              = 'vmware-vss'     # VMware VSS Writer
         'WINS Jet Writer'                = 'WINS'           # Windows Internet Name Service (WINS)
         'WMI Writer'                     = 'Winmgmt'        # Windows Management Instrumentation
     }
@@ -85,15 +86,14 @@ Function Invoke-VssRepair {
         # If there are failed writers, attempt to restart their corresponding service
         foreach ($writer in $failedVssWriters) {
             $writerName = $writer.name
-            if ($VssWriterToServiceName.ContainsKey($writerName)) {
-                $service = $VssWriterToServiceName.$writerName
+            $service = $VssWriterToServiceName.$writerName
 
+            if ($service) {
                 # If Force is set or the user confirms, restart the service
                 if ($Force -or $PSCmdlet.ShouldContinue($writer.name, 'Restart vss writer')) {
                     Write-Warning -Message "The $($writer.name) is in a failed state.  Restarting the $service service..."
                     Restart-Service -Name $service -Force
                 }
-
             } else {
                 Write-Warning -Message "The VSS Writer '$($writer.name)' is in a failed state, but no corresponding service was found."
             }
