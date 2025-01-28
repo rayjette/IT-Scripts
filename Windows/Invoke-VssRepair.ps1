@@ -1,56 +1,44 @@
-Function Invoke-VssRepair
-{
+Function Invoke-VssRepair {
     <#
-
     .SYNOPSIS
-
-    Locates VSS Writers in a failed state and attempts to fix the
-    issue by restarting the service responsible for the writer.
+        Attempts to repair failed Volume Shadow Copy Service (VSS) Writers by restarting the associated service.
 
     .DESCRIPTION
-
-    Locates VSS Writers in a failed state and attempts to fix the issue
-    by restarting the service responsible for the writer.
+        This function checks for VSS Writers in a failed state (i.e., not marked as "stable") and attempts to fix the issue by restarting the service responsible for each writer. 
 
     .PARAMETER Force
-
-    Supress conformation before restaring services.
-
-    .EXAMPLE
-
-    Invoke-VssRepair
+        If specified, suppresses the confirmation prompt when restarting services.
 
     .EXAMPLE
+        Invoke-VssRepair
+        This will check for failed VSS writers and attempt to restart the corresponding services, asking for confirmation before proceeding.
 
-    Invoke-VssRepair -Force
+    .EXAMPLE
+        Invoke-VssRepair -Force
+        This will check for failed VSS writers and restart the corresponding services without asking for confirmation.
 
     .INPUTS
-
-    None.  Invoke-VssRepair does not accept input from the pipeline.
+        None.  Invoke-VssRepair does not accept input from the pipeline.
 
     .NOTES
-
-    Raymond Jette
-
-    .LINK
-
-    https://github.com/rayjette
-
+        Raymond Jette
+        https://github.com/rayjette
     #>
 
     [CmdletBinding()]
     param
     (
+        # Bypass confirmation prompt if specified
         [switch]$Force
     )
 
-    # A helper function to convert the output from vssadmin list writers into PSCustomObjects.
-    Function ConvertFrom-VssWriter
-    {
+    # A helper function to parse VSS Writer information from the output of `vssadmin list writers`
+    Function ConvertFrom-VssWriter {
         $vssWriterInfo = Invoke-Command -ScriptBlock {vssadmin.exe list writers}
         $vssWriterInfo = $vssWriterInfo | Select-String 'Writer name:.*' -Context 0, 4
-        foreach ($writer in $vssWriterInfo)
-        {
+
+        # Parse the output and convert it into a list of PSCustomObjects
+        foreach ($writer in $vssWriterInfo) {
             [PSCustomObject]@{
                 Name        = $writer.matches.value -replace 'Writer name:\s+' -replace "'"
                 Id          = $writer.context.postcontext[0] -replace '\s+Writer Id:\s+'
@@ -62,7 +50,7 @@ Function Invoke-VssRepair
     } # ConvertFrom-VssWriter
 
 
-    # Mapping of VSS Writer Name to Service Name
+    # A hashtable mapping VSS Writer names to the corresponding service names
     $VssWriterToServiceName = @{
         'ASR Writer'                     = 'VSS'            # Volume Shadow Copy
         'BITS Writer'                    = 'BITS'           # Background Intelligent Transfer Service
@@ -90,26 +78,24 @@ Function Invoke-VssRepair
         'WMI Writer'                     = 'Winmgmt'        # Windows Management Instrumentation
     }
 
-    # These vss writers have failed.
+    # Retrieve all failed VSS Writers that are not in a "Stable" state
     $failedVssWriters = ConvertFrom-VssWriter | Where-Object {$_.State -notlike "*Stable*"}
-    if ($failedVssWriters)
-    {
-        # For each failed vss writer look up the service to restart and restart it.
-        foreach ($writer in $failedVssWriters)
-        {
+
+    if ($failedVssWriters) {
+        # If there are failed writers, attempt to restart their corresponding service
+        foreach ($writer in $failedVssWriters) {
             $writerName = $writer.name
-            if ($VssWriterToServiceName.ContainsKey($writerName))
-            {
+            if ($VssWriterToServiceName.ContainsKey($writerName)) {
                 $service = $VssWriterToServiceName.$writerName
-                if ($Force -or $PSCmdlet.ShouldContinue($writer.name, 'Restart vss writer'))
-                {
+
+                # If Force is set or the user confirms, restart the service
+                if ($Force -or $PSCmdlet.ShouldContinue($writer.name, 'Restart vss writer')) {
                     Write-Warning -Message "The $($writer.name) is in a failed state.  Restarting the $service service..."
                     Restart-Service -Name $service -Force
                 }
-            }
-            else
-            {
-                Write-Warning -Message "The $($writer.name) is in a failed state.  Unknown service."
+
+            } else {
+                Write-Warning -Message "The VSS Writer '$($writer.name)' is in a failed state, but no corresponding service was found."
             }
         }
     }
