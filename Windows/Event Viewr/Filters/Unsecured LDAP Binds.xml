@@ -1,5 +1,5 @@
 <QueryList>
   <Query Id="0" Path="Directory Service">
-    <Select Path="Directory Service">*[System[(EventID=2887 or EventID=2889)]]</Select>
+    <Select Path="Directory Service">*[System[(EventID=2886 or EventID=2887 or EventID=2889)]]</Select>
   </Query>
 </QueryList>
