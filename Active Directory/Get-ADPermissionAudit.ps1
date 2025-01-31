@@ -11,6 +11,17 @@ Function Get-ADPermissionAudit {
         - The permission action (e.g., Traverse, Read)
         - Whether the permission is inherited or not
 
+    .PARAMETER Identity
+        An optional parameter to specify the exact AD object (Distinguished Name or Object GUID) to audit. If not specified, all objects in the domain are audited.
+
+    .EXAMPLE
+        Get-ADPermissionAudit
+        Retrieves and audits the permissions for all AD objects and outputs the results to the console.
+
+    .EXAMPLE
+        Get-ADPermissionAudit -Identity "CN=Mike Jones,OU=Users,DC=example,DC=com"
+        Retrieves the permissions for the specific object "Mike Jones".
+
     .OUTPUTS
         Custom objects representing the AD object and its permissions. Each object includes the following properties:
         - DistinguishedName: The DN (Distinguished Name) of the AD object.
@@ -20,10 +31,6 @@ Function Get-ADPermissionAudit {
         - AccessType: Whether the permission is allowed or denied.
         - IsInherited: Whether the permission is inherited.
 
-    .EXAMPLE
-        Get-ADPermissionAudit
-        Retrieves and audits the permissions for all AD objects and outputs the results to the console.
-
     .NOTES
         Author: Raymond Jette
         Created: 01/31/2025
@@ -32,7 +39,8 @@ Function Get-ADPermissionAudit {
 
     [CmdletBinding()]
     param (
-
+        # Optional parameter to specify the identity of the AD object to audit (Distinguished Name or Object GUID)
+        [string]$Identity
     )
 
     # Dynamically get the domain name and build the Distinguished Name (DN) for domain and configuration partitions
@@ -41,14 +49,22 @@ Function Get-ADPermissionAudit {
     $domainSearchBase = ($domainParts | ForEach-Object { "DC=$($_)" }) -join ','
     $configurationSearchBase = "CN=Configuration,$domainSearchBase"
 
-    # Get all Active Directory site objects in the domain
-    $allSites = Get-ADObject -Filter {ObjectClass -eq "site"} -SearchBase $configurationSearchBase
+    # If an identity is specified, only retrieve the ACL for that specific object
+    if ($Identity) {
+        # Directly get the ACL for the specified object (no need to fetch all objects)
+        $allObjectDN = @($Identity)
+    } else {
+        # If no Identity specified, retrieve all Active Directory objects
 
-    # Get all Active Directory objects in the domain
-    $allADObjects = Get-ADObject -Filter * -Properties DistinguishedName, objectClass
+        # Get all Active Directory site objects in the domain
+        $allSites = Get-ADObject -Filter {ObjectClass -eq "site"} -SearchBase $configurationSearchBase
 
-    # Combine the Distinguished Names of AD objects and site objects
-    $allObjectDN = @($allADObjects.DistinguishedName) + $allSites.DistinguishedName
+        # Get all Active Directory objects in the domain (DistinguishedName and objectClass)
+        $allADObjects = Get-ADObject -Filter * -Properties DistinguishedName, objectClass
+
+        # Combine the Distinguished Names of AD objects and Sites for auditing
+        $allObjectDN = $allADObjects.DistinguishedName + $allSites.DistinguishedName
+    }
 
     # Loop through each Distinguished Name and retrieve ACLs
     foreach($dn in $allObjectDN) {
