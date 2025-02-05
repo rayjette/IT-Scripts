@@ -1,10 +1,10 @@
 Function Get-ADPermissionAudit {
     <#
     .SYNOPSIS
-        Retrieves and audits Active Directory permissions for all objects in the domain.
+        Retrieves and audits Active Directory permissions.
 
     .DESCRIPTION
-        This function collects the security descriptors and Access Control Lists (ACLs) for all Active Directory objects in the domain.
+        This function collects the security descriptors and Access Control Lists (ACLs) for most Active Directory objects in the domain.
         It outputs detailed information about the permissions, including:
         - The identity reference (user/group)
         - The type of access (allowed/denied)
@@ -49,6 +49,9 @@ Function Get-ADPermissionAudit {
     $domainSearchBase = ($domainParts | ForEach-Object { "DC=$($_)" }) -join ','
     $configurationSearchBase = "CN=Configuration,$domainSearchBase"
 
+    # Define the object types to include in the audit
+    $allowedObjectClasses = @("computer", "contact", "container", "domainDNS", "group", "organizationalUnit", "site", "user")
+
     # If an identity is specified, only retrieve the ACL for that specific object
     if ($Identity) {
         # Directly get the ACL for the specified object (no need to fetch all objects)
@@ -56,11 +59,17 @@ Function Get-ADPermissionAudit {
     } else {
         # If no Identity specified, retrieve all Active Directory objects
 
-        # Get all Active Directory site objects in the domain
-        $allSites = Get-ADObject -Filter {ObjectClass -eq "site"} -SearchBase $configurationSearchBase
+        # Create a dynamic filter for ObjectClass based on the allowed object classes
+        $objectClassFilter = $allowedObjectClasses | ForEach-Object { "ObjectClass -eq '$_'"}
+
+        # Join the filter conditional using ' -or '
+        $objectClassFilterString = $objectClassFilter -join ' -or '
 
         # Get all Active Directory objects in the domain (DistinguishedName and objectClass)
-        $allADObjects = Get-ADObject -Filter * -Properties DistinguishedName, objectClass
+        $allADObjects = Get-ADObject -Filter $objectClassFilterString -Properties DistinguishedName, objectClass
+
+        # Get all Active Directory site objects in the domain
+        $allSites = Get-ADObject -Filter {ObjectClass -eq "site"} -SearchBase $configurationSearchBase
 
         # Combine the Distinguished Names of AD objects and Sites for auditing
         $allObjectDN = $allADObjects.DistinguishedName + $allSites.DistinguishedName
