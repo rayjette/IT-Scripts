@@ -1,0 +1,8 @@
+<QueryList>
+  <Query Id="0" Path="Security">
+    <Select Path="Security">
+        *[System[(EventID=4768)]]
+        [EventData[Data[@Name='TicketEncryptionType'] and (Data='0x17')]]
+    </Select>
+  </Query>
+</QueryList>
