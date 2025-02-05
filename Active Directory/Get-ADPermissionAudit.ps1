@@ -103,7 +103,7 @@ Function Get-ADPermissionAudit {
                 $permission = $aceParts[1]
                 
                 # Split the permission field to extract Access Type and Inherited status
-                $accessType = if ($permission -match "AccessDenied") { "Denied" } elseif ($permission -match "AccessAllowed") { "Allowed" } else { "Unknown"}
+                $accessType = if ($permission -match "AccessDenied") { "Denied" } elseif ($permission -match "AccessAllowed") { "Allowed" } else { "Unknown" }
                 $isInherited = if ($permission -match "inherited") { $true } else { $false }
 
                 # Extract the permission action (e.g., Traverse, Read, etc.) from the parenthesis
