@@ -37,42 +37,43 @@ Function Get-ADPermissionAudit {
         https://github.com/rayjette
     #>
 
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = "AllObjects")]
     param (
         # Optional parameter to specify the identity of the AD object to audit (Distinguished Name or Object GUID)
+        [Parameter(ParameterSetName = 'Identity')]
         [string]$Identity
     )
 
-    # Dynamically get the domain name and build the Distinguished Name (DN) for domain and configuration partitions
-    $domainName = (Get-ADDomain).DNSRoot
-    $domainParts = $domainName -split '\.'
-    $domainSearchBase = ($domainParts | ForEach-Object { "DC=$($_)" }) -join ','
-    $configurationSearchBase = "CN=Configuration,$domainSearchBase"
+    switch ($PSCmdlet.ParameterSetName) {
+        'Identity' {
+            # Directly get the ACL for the specified object (no need to fetch all objects)
+            $allObjectDN = @($Identity)
+        }
+        'AllObjects' {
+            # If no Identity specified, retrieve all Active Directory objects
 
-    # Define the object types to include in the audit
-    $allowedObjectClasses = @("computer", "contact", "container", "domainDNS", "group", "organizationalUnit", "site", "user")
+            # Define the object types to include in the audit
+            $allowedObjectClasses = @("computer", "contact", "container", "domainDNS", "group", "organizationalUnit", "site", "user")
 
-    # If an identity is specified, only retrieve the ACL for that specific object
-    if ($Identity) {
-        # Directly get the ACL for the specified object (no need to fetch all objects)
-        $allObjectDN = @($Identity)
-    } else {
-        # If no Identity specified, retrieve all Active Directory objects
+            # Create a dynamic filter for ObjectClass based on the allowed object classes
+            $objectClassFilter = $allowedObjectClasses | ForEach-Object { "ObjectClass -eq '$_'"}
 
-        # Create a dynamic filter for ObjectClass based on the allowed object classes
-        $objectClassFilter = $allowedObjectClasses | ForEach-Object { "ObjectClass -eq '$_'"}
+            # Join the filter conditional using ' -or '
+            $objectClassFilterString = $objectClassFilter -join ' -or '
 
-        # Join the filter conditional using ' -or '
-        $objectClassFilterString = $objectClassFilter -join ' -or '
+            # Get all Active Directory objects in the domain (DistinguishedName and objectClass)
+            $allADObjects = Get-ADObject -Filter $objectClassFilterString -Properties DistinguishedName, objectClass
 
-        # Get all Active Directory objects in the domain (DistinguishedName and objectClass)
-        $allADObjects = Get-ADObject -Filter $objectClassFilterString -Properties DistinguishedName, objectClass
+            # Get all Active Directory site objects in the domain
+            $domainName = (Get-ADDomain).DNSRoot
+            $domainParts = $domainName -split '\.'
+            $domainSearchBase = ($domainParts | ForEach-Object { "DC=$($_)" }) -join ','
+            $configurationSearchBase = "CN=Configuration,$domainSearchBase"
+            $allSites = Get-ADObject -Filter {ObjectClass -eq "site"} -SearchBase $configurationSearchBase
 
-        # Get all Active Directory site objects in the domain
-        $allSites = Get-ADObject -Filter {ObjectClass -eq "site"} -SearchBase $configurationSearchBase
-
-        # Combine the Distinguished Names of AD objects and Sites for auditing
-        $allObjectDN = $allADObjects.DistinguishedName + $allSites.DistinguishedName
+            # Combine the Distinguished Names of AD objects and Sites for auditing
+            $allObjectDN = $allADObjects.DistinguishedName + $allSites.DistinguishedName
+        }
     }
 
     # Loop through each Distinguished Name and retrieve ACLs
