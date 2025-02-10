@@ -45,7 +45,7 @@ Function Set-LinkLocalMulticastNameResolution {
             New-Item -Path $regPath -Force | Out-Null
         }
 
-        # Get the current value of EnableMulticast
+        # Initialize currentValue to null
         $currentValue = $null
 
         # Try to get the current value of EnableMulticast
