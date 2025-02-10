@@ -66,6 +66,7 @@ Function Set-WebProxyAutoDiscovery {
         }
     }
 
+    
     # Registry Paths and Keys
     $regPathMachine = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\WinHTTP"
     $regPathUser = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings"
