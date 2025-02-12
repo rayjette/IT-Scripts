@@ -23,6 +23,9 @@ Function Set-LocalSecurityAuthorityServerServiceAsProtectedProcess {
         Set-LocalSecurityAuthorityServerServiceAsProtectedProcess -Enable
 
     .EXAMPLE
+        Set-LocalSecurityAuthorityServerServiceAsProtectedProcess -Enable -DontUseUEFIVariable
+        
+    .EXAMPLE
         Set-LocalSecurityAuthorityServerServiceAsProtectedProcess -Disable
 
     .NOTES
