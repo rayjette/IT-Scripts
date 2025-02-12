@@ -28,7 +28,12 @@ Function Set-LocalSecurityAuthorityServerServiceAsProtectedProcess {
     .EXAMPLE
         Set-LocalSecurityAuthorityServerServiceAsProtectedProcess -Disable
 
+    .LINK
+        https://learn.microsoft.com/en-us/windows-server/security/credentials-protection-and-management/configuring-additional-lsa-protection
+        
     .NOTES
+        Running the LSASS process as a protected process requires Windows 8.1 and later.
+
         Author: Raymond Jette
         Created: 02/12/2025
         https://github.com/rayjette
