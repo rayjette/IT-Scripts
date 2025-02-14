@@ -2,58 +2,48 @@ Function Get-FilesChangedAfter
 {
     <#
     .SYNOPSIS
-
-    Returns files which have changed since a specified time.
+        Retrieves files that have changed since a specified date.
 
     .DESCRIPTION
-
-    Returns files which have changed since a specified time.
-    If a time is not specified it will get files which have changed in the
-    last day.
+        This function returns a list of files that have been modified since a given date.
+        If no date is provided, it defaults to returning files modified in the last 24 hours.
+        Additionally, the function allows for recursion into subdirectories within the provided path.
 
     .PARAMETER Path
-
-    The path of the directory to look for changed files in.  If you specify
-    the path of just the drive letter make sure a trailing '\' is added or it
-    will not work.  Ex. C:\ not C:.
+        The path to the directory where the search will being.
 
     .PARAMETER Date
-
-    The date to consider when looking for changed files.
+        The cutoff date for considering file modifications.  If not provided, defaults to the last 24 hours.
 
     .PARAMETER Recurse
-
-    Looks at files in the path provided as well as in any subdirectories.
+        A flag indicating whether to search in subdirectories.
+        If specified, the function will recursively search for files in the directory and its subdirectories.
+    
+    .EXAMPLE
+        Get-FilesChangedAfter -Path "C:\" -Recurse
+        Retrieves files that have been modified within the last 24 hours on the C: drive, including subdirectories.
 
     .EXAMPLE
-
-    Get-FilesChanged -Path C:\ -Recurse
-    Get's the files that have changed in the last day on the C: drive.
-    Subdirectories in path will also be looked at.
+        Get-FilesChangedAfter -Path "C:\" -Date (Get-Date).AddDays(-7) -Recurse
+        Retrieves files modified in the last 7 days on the C: drive, including subdirectories.
 
     .EXAMPLE
-
-    Get-FilesChanged -Path C:\ -Date (Get-Date).AddDays(-7) -Recurse
-    Get's the files that have changed in the last 7 days on the C: drive.
+        Get-FilesChangedAfter -Path "D:\Documents" -Date (Get-Date).AddMonths(-1)
+        Retrieves files modified within the last month in the D:\Documents directory, without recursion.
 
     .INPUTS
-
-    None.  Get-FilesChangedAfter does not accept input from the pipeline.
+        This function does not accept pipeline input.
 
     .OUTPUTS
-
-    [System.IO.DirectoryInfo]
+        A list of `FileInfo` objects representing files that match the modification date criteria.
 
     .NOTES
-
-    Raymond Jette
-    
-    .LINK
-
-    https://github.com/rayjette
+        Creator: Raymond Jette
+        Last Modified: 02/14/2025
+        https://github.com/rayjette
     
     #>
-    [OutputType([string])]
+    [OutputType([System.IO.FileInfo])]
     [CmdletBinding()]
     param
     (
@@ -65,12 +55,29 @@ Function Get-FilesChangedAfter
 
         [switch] $Recurse
     )
-    $params = @{
-        LiteralPath   = $Path
-        File   = $true
-        Force   = $true
-        Recurse = $recurse
+
+    # Ensure the path ends with a backslash
+    if ($Path[-1] -ne '\') {
+        $Path = $Path + '\'
     }
-    Get-ChildItem @params |
-        Where-Object {$_.LastWriteTime -ge $Date}
+
+    # Verify the path exists
+    if (-not (Test-Path -Path $Path -PathType Container )) {
+        throw "The specified path '$Path' does not exist or is not a directory."
+    }
+
+    # Parameters for Get-ChildItem
+    $params = @{
+        LiteralPath = $Path
+        File        = $true
+        Force       = $true
+        Recurse     = $Recurse
+    }
+
+    try {
+        # Returns files which have changed since LastWriteTime
+        Get-ChildItem @params | Where-Object { $_.LastWriteTime -ge $Date }
+    } catch {
+        Write-Error "An error occurred while retrieving files from the specified path: $_"
+    }
 } # Get-FilesChangedAfter
