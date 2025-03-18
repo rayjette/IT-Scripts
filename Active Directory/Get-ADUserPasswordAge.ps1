@@ -119,6 +119,7 @@ Function Get-ADUserPasswordAge
                 [PSCustomObject]@{
                     UserName = $userDetails.SamAccountName 
                     'PasswordAge(Days)' = $PasswordAge
+                    'Enabled' = $userDetails.enabled
                 }
             } catch {
                 # Catch and report any errors.
