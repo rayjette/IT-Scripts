@@ -39,12 +39,16 @@ Function ConvertFrom-TicketRequestEvent {
             [Parameter(Mandatory)]
             [string]$ticketOptionsHex # Hexadecimal representation of TicketOptions
         )
-
-        # Convert the hexadecimal value to binary
-        $binaryOptions = [Convert]::ToString([Convert]::ToInt32($ticketOptionsHex, 16), 2).PadLeft(32, '0')
-
-        # Define the mapping of bit positions to flag names
+    
+        # Convert the hexadecimal value to binary (32-bit representation) using unsigned conversion
+        $binaryOptions = [Convert]::ToString([Convert]::ToUInt32($ticketOptionsHex, 16), 2).PadLeft(32, '0')
+    
+        # Reverse the binary string to align with MSB 0 numbering
+        $binaryOptions = ($binaryOptions.ToCharArray() | ForEach-Object { $_ }) -join ''
+    
+        # Define the mapping of bit positions to flag names (MSB 0 numbering)
         $flags = @{
+            0  = 'Reserved'
             1  = 'Forwardable'
             2  = 'Forwarded'
             3  = 'Proxiable'
@@ -64,15 +68,16 @@ Function ConvertFrom-TicketRequestEvent {
             30 = 'Renew'
             31 = 'Validate'
         }
-
+    
         # Decode the binary string into readable flags
         $decodedFlags = @()
         foreach ($bit in $flags.Keys) {
-            if ($binaryOptions.Substring(31 - $bit, 1) -eq '1') {
+            # Check if the bit at position $bit is set (MSB 0 numbering)
+            if ($binaryOptions[$bit] -eq '1') {
                 $decodedFlags += $flags[$bit]
             }
         }
-
+    
         # Return the decoded flags as a comma-separated string
         $decodedFlags -join ', '
     }
