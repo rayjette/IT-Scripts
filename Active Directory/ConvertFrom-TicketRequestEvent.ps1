@@ -33,6 +33,50 @@ Function ConvertFrom-TicketRequestEvent {
         $field.'#text'
     }
     
+    # Function to decode TicketOptions into readable flags
+    function Decode-TicketOptions {
+        param (
+            [Parameter(Mandatory)]
+            [string]$ticketOptionsHex # Hexadecimal representation of TicketOptions
+        )
+
+        # Convert the hexadecimal value to binary
+        $binaryOptions = [Convert]::ToString([Convert]::ToInt32($ticketOptionsHex, 16), 2).PadLeft(32, '0')
+
+        # Define the mapping of bit positions to flag names
+        $flags = @{
+            1  = 'Forwardable'
+            2  = 'Forwarded'
+            3  = 'Proxiable'
+            4  = 'Proxy'
+            5  = 'Allow-postdate'
+            6  = 'Postdated'
+            7  = 'Invalid'
+            8  = 'Renewable'
+            9  = 'Initial'
+            10 = 'Pre-authent'
+            11 = 'Opt-hardware-auth'
+            12 = 'Transited-policy-checked'
+            13 = 'Ok-as-delegate'
+            14 = 'Request-anonymous'
+            15 = 'Name-canonicalize'
+            27 = 'Renewable-ok'
+            30 = 'Renew'
+            31 = 'Validate'
+        }
+
+        # Decode the binary string into readable flags
+        $decodedFlags = @()
+        foreach ($bit in $flags.Keys) {
+            if ($binaryOptions.Substring(31 - $bit, 1) -eq '1') {
+                $decodedFlags += $flags[$bit]
+            }
+        }
+
+        # Return the decoded flags as a comma-separated string
+        $decodedFlags -join ', '
+    }
+
     # Retrieve the specific event log entries for event IDs 4769 and 4768 from the Security log.
     $events = Get-WinEvent -FilterHashtable @{ logname ='Security'; id = 4769, 4768 }
 
@@ -45,6 +89,10 @@ Function ConvertFrom-TicketRequestEvent {
         $clientAdvertizedEncryptionTypes = Get-XMLFieldValue -fieldName 'ClientAdvertizedEncryptionTypes' -xmlEvent $xmlEvent
         $clientAdvertizedEncryptionTypes = ($clientAdvertizedEncryptionTypes.trim() -split 'r?\n' | ForEach-Object {$_.Trim()}) -Join ', '
 
+        # Decode the TicketOptions field
+        $ticketOptionsHex = Get-XMLFieldValue -fieldName 'TicketOptions' -xmlEvent $xmlEvent
+        $decodedTicketOptions = Decode-TicketOptions -ticketOptionsHex $ticketOptionsHex
+        
         # Create a custom object with teh parsed event data
         [PSCustomObject]@{
             ComputerEventLoggedOn           = $_.MachineName
@@ -55,7 +103,7 @@ Function ConvertFrom-TicketRequestEvent {
             TargetSid                       = Get-XMLFieldValue -fieldName 'TargetSid' -xmlEvent $xmlEvent
             ServiceName                     = Get-XMLFieldValue -fieldName 'ServiceName' -xmlEvent $xmlEvent
             ServiceSid                      = Get-XMLFieldValue -fieldName 'ServiceSid' -xmlEvent $xmlEvent
-            TicketOptions                   = Get-XMLFieldValue -fieldName 'TicketOptions' -xmlEvent $xmlEvent
+            TicketOptions                   = $decodedTicketOptions
             Status                          = Get-XMLFieldValue -fieldName 'Status' -xmlEvent $xmlEvent
             TicketEncryptionType            = Get-XMLFieldValue -fieldName 'TicketEncryptionType' -xmlEvent $xmlEvent
             PreAuthType                     = Get-XMLFieldValue -fieldName 'PreAuthType' -xmlEvent $xmlEvent
