@@ -82,6 +82,116 @@ Function ConvertFrom-TicketRequestEvent {
         $decodedFlags -join ', '
     }
 
+    # Function to decode Status into readable flags
+    function Decode-Status {
+        param (
+            [Parameter(Mandatory)]
+            [string]$statusHex # Hexadecimal representation of the Status field
+        )
+    
+        # Define the mapping of status codes to descriptions
+        $statusCodes = @{
+            "0x0"  = "Success"
+            "0x1"  = "Client’s entry in KDC database has expired"
+            "0x2"  = "Server’s entry in KDC database has expired"
+            "0x3"  = "Requested ticket is not renewable"
+            "0x4"  = "Client’s credentials have been revoked"
+            "0x5"  = "Client not found in Kerberos database"
+            "0x6"  = "Server not found in Kerberos database"
+            "0x7"  = "Requested ticket is not forwardable"
+            "0x8"  = "TGT has been revoked"
+            "0x9"  = "Client not yet valid – try again later"
+            "0xA"  = "Server not yet valid – try again later"
+            "0xB"  = "Password has expired – change password to reset"
+            "0xC"  = "Pre-authentication information was invalid"
+            "0xD"  = "Additional pre-authentication required"
+            "0xE"  = "KDC policy rejects request"
+            "0xF"  = "KDC cannot accommodate requested option"
+            "0x10" = "KDC has no support for encryption type"
+            "0x11" = "KDC has no support for checksum type"
+            "0x12" = "KDC has no support for padata type"
+            "0x13" = "More data is needed to complete request"
+            "0x14" = "KDC does not support requested protocol version"
+            "0x15" = "Client’s credentials have been revoked"
+            "0x16" = "Ticket has expired"
+            "0x17" = "Ticket not yet valid"
+            "0x18" = "Request is a replay"
+            "0x19" = "Request is not authentic"
+            "0x1A" = "Client’s credentials have been revoked"
+            "0x1B" = "Ticket has expired"
+            "0x1C" = "Ticket not yet valid"
+            "0x1D" = "Request is a replay"
+            "0x1E" = "Request is not authentic"
+            "0x1F" = "Client’s credentials have been revoked"
+            "0x20" = "Ticket has expired"
+            "0x21" = "Ticket not yet valid"
+            "0x22" = "Request is a replay"
+            "0x23" = "Request is not authentic"
+            "0x24" = "Client’s credentials have been revoked"
+            "0x25" = "Ticket has expired"
+            "0x26" = "Ticket not yet valid"
+            "0x27" = "Request is a replay"
+            "0x28" = "Request is not authentic"
+            "0x29" = "Client’s credentials have been revoked"
+            "0x2A" = "Ticket has expired"
+            "0x2B" = "Ticket not yet valid"
+            "0x2C" = "Request is a replay"
+            "0x2D" = "Request is not authentic"
+            "0x2E" = "Client’s credentials have been revoked"
+            "0x2F" = "Ticket has expired"
+            "0x30" = "Ticket not yet valid"
+            "0x31" = "Request is a replay"
+            "0x32" = "Request is not authentic"
+            "0x33" = "Client’s credentials have been revoked"
+            "0x34" = "Ticket has expired"
+            "0x35" = "Ticket not yet valid"
+            "0x36" = "Request is a replay"
+            "0x37" = "Request is not authentic"
+            "0x38" = "Client’s credentials have been revoked"
+            "0x39" = "Ticket has expired"
+            "0x3A" = "Ticket not yet valid"
+            "0x3B" = "Request is a replay"
+            "0x3C" = "Request is not authentic"
+            "0x3D" = "Client’s credentials have been revoked"
+            "0x3E" = "Ticket has expired"
+            "0x3F" = "Ticket not yet valid"
+            "0x40" = "Request is a replay"
+            "0x41" = "Request is not authentic"
+            "0x42" = "Client’s credentials have been revoked"
+            "0x43" = "Ticket has expired"
+            "0x44" = "Ticket not yet valid"
+            "0x45" = "Request is a replay"
+            "0x46" = "Request is not authentic"
+            "0x47" = "Client’s credentials have been revoked"
+            "0x48" = "Ticket has expired"
+            "0x49" = "Ticket not yet valid"
+            "0x4A" = "Request is a replay"
+            "0x4B" = "Request is not authentic"
+            "0x4C" = "Client’s credentials have been revoked"
+            "0x4D" = "Ticket has expired"
+            "0x4E" = "Ticket not yet valid"
+            "0x4F" = "Request is a replay"
+            "0x50" = "Request is not authentic"
+            "0x51" = "Client’s credentials have been revoked"
+            "0x52" = "Ticket has expired"
+            "0x53" = "Ticket not yet valid"
+            "0x54" = "Request is a replay"
+            "0x55" = "Request is not authentic"
+            "0x56" = "Client’s credentials have been revoked"
+            "0x57" = "Ticket has expired"
+            "0x58" = "Ticket not yet valid"
+            "0x59" = "Request is a replay"
+            "0x5A" = "Request is not authentic"
+        }
+    
+        # Return the description for the status code, or the original code if not found
+        if ($statusCodes.ContainsKey($statusHex)) {
+            $statusCodes[$statusHex]
+        } else {
+            $statusHex
+        }
+    }
+
     # Retrieve the specific event log entries for event IDs 4769 and 4768 from the Security log.
     $events = Get-WinEvent -FilterHashtable @{ logname ='Security'; id = 4769, 4768 }
 
@@ -98,6 +208,10 @@ Function ConvertFrom-TicketRequestEvent {
         $ticketOptionsHex = Get-XMLFieldValue -fieldName 'TicketOptions' -xmlEvent $xmlEvent
         $decodedTicketOptions = Decode-TicketOptions -ticketOptionsHex $ticketOptionsHex
         
+        # Decode the Status field 
+        $statusHex = Get-XMLFieldValue -fieldName 'Status' -xmlEvent $xmlEvent
+        $decodedStatus = Decode-Status -StatusHex $statusHex
+
         # Create a custom object with teh parsed event data
         [PSCustomObject]@{
             ComputerEventLoggedOn           = $_.MachineName
@@ -109,7 +223,7 @@ Function ConvertFrom-TicketRequestEvent {
             ServiceName                     = Get-XMLFieldValue -fieldName 'ServiceName' -xmlEvent $xmlEvent
             ServiceSid                      = Get-XMLFieldValue -fieldName 'ServiceSid' -xmlEvent $xmlEvent
             TicketOptions                   = $decodedTicketOptions
-            Status                          = Get-XMLFieldValue -fieldName 'Status' -xmlEvent $xmlEvent
+            Status                          = $decodedStatus
             TicketEncryptionType            = Get-XMLFieldValue -fieldName 'TicketEncryptionType' -xmlEvent $xmlEvent
             PreAuthType                     = Get-XMLFieldValue -fieldName 'PreAuthType' -xmlEvent $xmlEvent
             IpAddress                       = Get-XMLFieldValue -fieldName 'IpAddress' -xmlEvent $xmlEvent
