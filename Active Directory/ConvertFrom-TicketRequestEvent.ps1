@@ -192,6 +192,32 @@ Function ConvertFrom-TicketRequestEvent {
         }
     }
 
+    # Function to decode encryption types (for TicketEncryptionType, SessionKeyEncryptionType, PreAuthEncryptionType)
+    function Decode-EncryptionType {
+        param (
+            [Parameter(Mandatory)]
+            [string]$encryptionTypeHex # Hexadecimal representation of the encryption type
+        )
+        
+        # Define the mapping of encryption type values to readable encryption algorithms
+        $encryptionTypes = @{
+            "0x0"  = "DES-CBC-CRC"
+            "0x1"  = "DES-CBC-MD5"
+            "0x12" = "AES256"
+            "0x13" = "AES128"
+            "0x17" = "RC4-HMAC"
+            "0x18" = "3DES"
+            "0x19" = "RC4-HMAC-NT"
+        }
+        
+        # Return the corresponding encryption type or the original value if not found
+        if ($encryptionTypes.ContainsKey($encryptionTypeHex)) {
+            $encryptionTypes[$encryptionTypeHex]
+        } else {
+            $encryptionTypeHex # Return the raw value if not found
+        }
+    }
+
     # Retrieve the specific event log entries for event IDs 4769 and 4768 from the Security log.
     $events = Get-WinEvent -FilterHashtable @{ logname ='Security'; id = 4769, 4768 }
 
@@ -212,6 +238,10 @@ Function ConvertFrom-TicketRequestEvent {
         $statusHex = Get-XMLFieldValue -fieldName 'Status' -xmlEvent $xmlEvent
         $decodedStatus = Decode-Status -StatusHex $statusHex
 
+        # Decode the TicketEncryptionType field
+        $ticketEncryptionTypeHex = Get-XMLFieldValue -fieldName 'TicketEncryptionType' -xmlEvent $xmlEvent
+        $decodedTicketEncryptionType = Decode-EncryptionType -encryptionTypeHex $ticketEncryptionTypeHex
+
         # Create a custom object with teh parsed event data
         [PSCustomObject]@{
             ComputerEventLoggedOn           = $_.MachineName
@@ -224,7 +254,7 @@ Function ConvertFrom-TicketRequestEvent {
             ServiceSid                      = Get-XMLFieldValue -fieldName 'ServiceSid' -xmlEvent $xmlEvent
             TicketOptions                   = $decodedTicketOptions
             Status                          = $decodedStatus
-            TicketEncryptionType            = Get-XMLFieldValue -fieldName 'TicketEncryptionType' -xmlEvent $xmlEvent
+            TicketEncryptionType            = $decodedTicketEncryptionType
             PreAuthType                     = Get-XMLFieldValue -fieldName 'PreAuthType' -xmlEvent $xmlEvent
             IpAddress                       = Get-XMLFieldValue -fieldName 'IpAddress' -xmlEvent $xmlEvent
             IpPort                          = Get-XMLFieldValue -fieldName 'IpPort' -xmlEvent $xmlEvent
