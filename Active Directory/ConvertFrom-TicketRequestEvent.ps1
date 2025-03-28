@@ -272,9 +272,14 @@ Function ConvertFrom-TicketRequestEvent {
         $preAuthEncryptionTypeHex = Get-XMLFieldValue -fieldName 'PreAuthEncryptionType' -xmlEvent $xmlEvent
         $decodedPreAuthEncryptionType = Decode-EncryptionType -encryptionTypeHex $preAuthEncryptionTypeHex
 
-        # Decode the PreAuthType field
-        $preAuthTypeValue = Get-XMLFieldValue -fieldName 'PreAuthType' -xmlEvent $xmlEvent
-        $decodedPreAuthType = Decode-PreAuthType -preAuthTypeValue $preAuthTypeValue
+        # Determine and decode the PreAuthType
+        $decodedPreAuthType = if ($_.Id -eq 4769) {
+            # Event id 4769 does not have a PreAuthType field
+            "n/a" 
+        } else {
+            $preAuthType = Get-XMLFieldValue -fieldName 'PreAuthType' -xmlEvent $xmlEvent
+            Decode-PreAuthType -preAuthTypeValue $preAuthType
+        }
 
         [PSCustomObject]@{
             ComputerEventLoggedOn           = $_.MachineName
