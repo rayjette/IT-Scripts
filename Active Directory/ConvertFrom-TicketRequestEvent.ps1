@@ -8,6 +8,8 @@ Function ConvertFrom-TicketRequestEvent {
         It parses the events, extracts relevant information from the XML structure of each event, and then returns
         a custom object with the extracted fields.
 
+        ConvertFrom-TicketRequestEvent assumes the appropriate audit policies have been enabled to get events 4768 and 4769.
+
     .EXAMPLE
         ConvertFrom-TicketRequestEvent
 
