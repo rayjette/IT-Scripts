@@ -217,6 +217,29 @@ Function ConvertFrom-TicketRequestEvent {
         }
     }
 
+    # Function to decode pre-authentication field
+    function Decode-PreAuthType {
+        param (
+            [string]$preAuthTypeValue
+        )
+
+        # Define the mapping of PreAuthType values to descriptions
+        $preAuthTypeMap = @{
+            "0" = "Pre-Authentication Successful"
+            "1" = "Pre-Authentication Failed"
+            "2" = "Timestamp-based Pre-Authentication"
+            "3" = "TGT-based Pre-Authentication"
+            "4" = "PA-ENC-TIMESTAMP Pre-Authentication"
+        }
+
+        # Return the description for the PreAuthType, or the original value if not found
+        if ($preAuthTypeMap.ContainsKey($preAuthTypeValue)) {
+            $preAuthTypeMap[$preAuthTypeValue]
+        } else {
+            $preAuthTypeValue
+        }
+    }
+
     # Retrieve the specific event log entries for event IDs 4769 and 4768 from the Security log.
     $events = Get-WinEvent -FilterHashtable @{ logname ='Security'; id = 4769, 4768 }
 
@@ -249,6 +272,10 @@ Function ConvertFrom-TicketRequestEvent {
         $preAuthEncryptionTypeHex = Get-XMLFieldValue -fieldName 'PreAuthEncryptionType' -xmlEvent $xmlEvent
         $decodedPreAuthEncryptionType = Decode-EncryptionType -encryptionTypeHex $preAuthEncryptionTypeHex
 
+        # Decode the PreAuthType field
+        $preAuthTypeValue = Get-XMLFieldValue -fieldName 'PreAuthType' -xmlEvent $xmlEvent
+        $decodedPreAuthType = Decode-PreAuthType -preAuthTypeValue $preAuthTypeValue
+
         [PSCustomObject]@{
             ComputerEventLoggedOn           = $_.MachineName
             TimeCreated                     = $_.TimeCreated
@@ -261,7 +288,7 @@ Function ConvertFrom-TicketRequestEvent {
             TicketOptions                   = $decodedTicketOptions
             Status                          = $decodedStatus
             TicketEncryptionType            = $decodedTicketEncryptionType
-            PreAuthType                     = Get-XMLFieldValue -fieldName 'PreAuthType' -xmlEvent $xmlEvent
+            PreAuthType                     = $decodedPreAuthType
             IpAddress                       = Get-XMLFieldValue -fieldName 'IpAddress' -xmlEvent $xmlEvent
             IpPort                          = Get-XMLFieldValue -fieldName 'IpPort' -xmlEvent $xmlEvent
             CertIssuerName                  = Get-XMLFieldValue -fieldName 'CertIssuerName' -xmlEvent $xmlEvent
