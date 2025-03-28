@@ -195,7 +195,6 @@ Function ConvertFrom-TicketRequestEvent {
     # Function to decode encryption types (for TicketEncryptionType, SessionKeyEncryptionType, PreAuthEncryptionType)
     function Decode-EncryptionType {
         param (
-            [Parameter(Mandatory)]
             [string]$encryptionTypeHex # Hexadecimal representation of the encryption type
         )
         
@@ -242,7 +241,14 @@ Function ConvertFrom-TicketRequestEvent {
         $ticketEncryptionTypeHex = Get-XMLFieldValue -fieldName 'TicketEncryptionType' -xmlEvent $xmlEvent
         $decodedTicketEncryptionType = Decode-EncryptionType -encryptionTypeHex $ticketEncryptionTypeHex
 
-        # Create a custom object with teh parsed event data
+        # Decode the SessionKeyEncryptionType field
+        $sessionKeyEncryptionTypeHex = Get-XMLFieldValue -fieldName 'SessionKeyEncryptionType' -xmlEvent $xmlEvent
+        $decodedSessionKeyEncryptionType = Decode-EncryptionType -encryptionTypeHex $sessionKeyEncryptionTypeHex
+
+        # Decode the PreAuthEncryptionType field
+        $preAuthEncryptionTypeHex = Get-XMLFieldValue -fieldName 'PreAuthEncryptionType' -xmlEvent $xmlEvent
+        $decodedPreAuthEncryptionType = Decode-EncryptionType -encryptionTypeHex $preAuthEncryptionTypeHex
+
         [PSCustomObject]@{
             ComputerEventLoggedOn           = $_.MachineName
             TimeCreated                     = $_.TimeCreated
@@ -269,8 +275,8 @@ Function ConvertFrom-TicketRequestEvent {
             DCSupportedEncryptionTypes      = Get-XMLFieldValue -fieldName 'DCSupportedEncryptionTypes' -xmlEvent $xmlEvent
             DCAvailableKeys                 = Get-XMLFieldValue -fieldName 'DCAvailableKeys' -xmlEvent $xmlEvent
             ClientAdvertizedEncryptionTypes = $clientAdvertizedEncryptionTypes
-            SessionKeyEncryptionType        = Get-XMLFieldValue -fieldName 'SessionKeyEncryptionType' -xmlEvent $xmlEvent
-            PreAuthEncryptionType           = Get-XMLFieldValue -fieldName 'PreAuthEncryptionType' -xmlEvent $xmlEvent
+            SessionKeyEncryptionType        = $decodedSessionKeyEncryptionType
+            PreAuthEncryptionType           = $decodedPreAuthEncryptionType
         }
     }
 }
