@@ -1,0 +1,5 @@
+<QueryList>
+  <Query Id="0" Path="Security">
+    <Select Path="Security">*[System[(EventID=4688 or EventID=4696)]]</Select>
+  </Query>
+</QueryList>
