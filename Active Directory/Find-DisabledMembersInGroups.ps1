@@ -10,23 +10,23 @@ Function Find-DisabledMembersInGroups {
         It helps administrators to identify and manage groups with inactive accounts.
 
     .PARAMETER Name
-        Specifies the name of one or more groups to search for disabled members.  This parameter is optional.
+        Specifies the name of one or more groups to search for disabled members. This parameter is optional.
 
     .PARAMETER Type
-        Specifies the type of the group (Security or Distribution).  This parameter is optional
+        Specifies the type of the group (Security or Distribution). This parameter is optional.
 
     .PARAMETER SearchBase
         Specifies the distinguished name of an Active Directory container or organizational unit. The search for
         groups with disabled members will be limited to this container and its children. This parameter is optional.
 
     .PARAMETER IncludeDomainUsers
-        Specifies whether to include the "Domain Users" group in the processing.  If this parameter is not provided,
-        the "Domain Users" group will be excluded from the results.  Since all users are members of the "Domain Users"
+        Specifies whether to include the "Domain Users" group in the processing. If this parameter is not provided,
+        the "Domain Users" group will be excluded from the results. Since all users are members of the "Domain Users"
         group by default, specifying this parameter will cause all disabled users to be reported.
 
     .PARAMETER IncludeDomainComputers
-        Specifies whether to include the "Domain Computers" group in the processing.  If this parameter is not provided,
-        the "Domain Computers" group will be excluded from the results.  Since all computers are members of the
+        Specifies whether to include the "Domain Computers" group in the processing. If this parameter is not provided,
+        the "Domain Computers" group will be excluded from the results. Since all computers are members of the
         "Domain Computers" group by default, specifying this parameter will cause all disabled computers to be reported.
 
     .EXAMPLE
@@ -42,8 +42,8 @@ Function Find-DisabledMembersInGroups {
         Find-DisabledMembersInGroups -IncludeDomainComputers
 
     .INPUTS
-        None.  Find-DisabledMembersInGroups does not accept pipelined input.
-    
+        None. Find-DisabledMembersInGroups does not accept pipelined input.
+
     .OUTPUTS
         System.Management.Automation.PSCustomObject
 
@@ -52,6 +52,7 @@ Function Find-DisabledMembersInGroups {
         Date: 01/21/2025
         https://github.com/rayjette
     #>
+
     [OutputType([System.Management.Automation.PSCustomObject])]
     [CmdletBinding()]
     Param (
@@ -88,7 +89,7 @@ Function Find-DisabledMembersInGroups {
 
     # Filter groups by Type (if specified)
     if ($PSBoundParameters.ContainsKey('Type')) {
-        $groups = $groups | Where-Object { $_.GroupCategory -eq $type }
+        $groups = $groups | Where-Object { $_.GroupCategory -eq $Type }
     }
 
     # Initialize a counter for the progress bar
@@ -96,6 +97,18 @@ Function Find-DisabledMembersInGroups {
 
     # List of disabled users to exclude by default
     $excludedUsers = @('krbtgt')
+
+    # Pre-fetch user and computer enabled statuses
+    $userStatus = @{}
+    $computerStatus = @{}
+
+    # Fetch all users and computers once
+    $allUsers = Get-ADUser -Filter * -Properties SamAccountName, Enabled
+    $allComputers = Get-ADComputer -Filter * -Properties SamAccountName, Enabled
+
+    # Populate hash tables
+    $allUsers | ForEach-Object { $userStatus[$_.SamAccountName] = $_.Enabled }
+    $allComputers | ForEach-Object { $computerStatus[$_.SamAccountName] = $_.Enabled }
 
     foreach ($group in $groups) {
         # Skip the "Domain Users" group unless IncludeDomainUsers is specified
@@ -132,11 +145,11 @@ Function Find-DisabledMembersInGroups {
             }
 
             # Check if the user is disabled
-            if ($member.objectClass -eq 'user' -and -not (Test-IsADUserEnabled -Identity $member.samAccountName)) {
+            if ($member.objectClass -eq 'user' -and $userStatus[$member.samAccountName] -eq $false) {
                 $disabledUsers += $member.name
             }
             # Check if the computer is disabled
-            elseif ($member.objectClass -eq 'computer' -and -not (Test-IsADComputerEnabled -Identity $member.samAccountName)) {
+            elseif ($member.objectClass -eq 'computer' -and $computerStatus[$member.samAccountName] -eq $false) {
                 $disabledComputers += $member.name
             }
         }
