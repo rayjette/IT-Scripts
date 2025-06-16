@@ -20,7 +20,6 @@ Function Get-ADUnlinkedGPO
     .OUTPUTS
         Microsoft.GroupPolicy.Gpo
     #>
-    [OutputType([Microsoft.GroupPolicy.Gpo])]
     [CmdletBinding()]
     param ()
 
