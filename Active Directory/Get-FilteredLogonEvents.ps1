@@ -23,7 +23,7 @@ function Get-FilteredLogonEvents {
 
     function Get-LogonTypeName {
         param ([int]$code)
-        return $logonTypeMap.GetEnumerator() | Where-Object { $_.Value -eq $code } | Select-Object -ExpandProperty Key -First 1
+        $logonTypeMap.GetEnumerator() | Where-Object { $_.Value -eq $code } | Select-Object -ExpandProperty Key -First 1
     }
 
     # Enforce mutual exclusivity of -LogonType and -ExcludeLogonType
@@ -70,7 +70,6 @@ function Get-FilteredLogonEvents {
         )
     } catch {
         Write-Error "Invalid XPath query: $xpathQuery"
-        return
     }
 
     $reader = New-Object System.Diagnostics.Eventing.Reader.EventLogReader($query)
@@ -134,6 +133,5 @@ function Get-FilteredLogonEvents {
             }
         }
     }
-
     $reader.Dispose()
 }
